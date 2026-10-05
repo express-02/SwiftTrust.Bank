@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<title>History — SwiftTrust Bank</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<link rel="stylesheet" href="style.css">
+<style>
+  .filter-tabs { display: flex; gap: 6px; padding: 0 18px; margin-bottom: 14px; overflow-x: auto; }
+  .filter-tab {
+    padding: 9px 14px; border-radius: 999px;
+    background: var(--panel); border: 1px solid var(--line);
+    font-family: inherit; font-size: .8rem; font-weight: 600;
+    color: var(--text-dim); cursor: pointer; white-space: nowrap;
+    transition: .15s;
+  }
+  .filter-tab:hover { background: var(--bg); }
+  .filter-tab.active { background: var(--blue); color: #fff; border-color: var(--blue); }
+  .search-box { margin: 0 18px 16px; position: relative; }
+  .search-box i {
+    position: absolute; left: 14px; top: 50%; transform: translateY(-50%);
+    color: var(--text-faint); font-size: .85rem;
+  }
+  .search-box input {
+    width: 100%; padding: 11px 14px 11px 40px;
+    border: 1px solid var(--line-2); border-radius: 12px;
+    font-family: inherit; font-size: .88rem; background: #fff; color: var(--ink);
+  }
+  .search-box input:focus {
+    outline: none; border-color: var(--blue);
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, .12);
+  }
+  .date-header {
+    font-size: .72rem; font-weight: 700; text-transform: uppercase;
+    letter-spacing: .08em; color: var(--text-faint);
+    padding: 14px 18px 6px;
+  }
+  .tx-row {
+    display: flex; align-items: center; gap: 12px;
+    padding: 14px 18px;
+    border-bottom: 1px solid var(--line);
+    transition: background .12s;
+  }
+  .tx-row:last-child { border-bottom: none; }
+  .tx-row:hover { background: #fafcfe; }
+  .tx-icon {
+    width: 42px; height: 42px; border-radius: 12px;
+    display: grid; place-items: center;
+    flex-shrink: 0; font-size: .95rem;
+  }
+  .tx-icon.in { background: var(--green-soft); color: var(--green); }
+  .tx-icon.out { background: var(--red-soft); color: var(--red); }
+  .tx-icon.fee { background: var(--amber-soft); color: var(--amber); }
+  .tx-icon.stock { background: #ede9fe; color: #6d28d9; }
+  .tx-icon.save { background: var(--blue-soft); color: var(--blue); }
+  .tx-main { flex: 1; min-width: 0; }
+  .tx-desc {
+    font-size: .88rem; font-weight: 600; color: var(--ink);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .tx-meta { font-size: .72rem; color: var(--text-faint); margin-top: 2px; }
+  .tx-amt {
+    font-size: .92rem; font-weight: 700; white-space: nowrap; text-align: right;
+  }
+  .tx-amt.pos { color: var(--green); }
+  .tx-amt.neg { color: var(--ink); }
+</style>
+</head>
+<body>
+
+<div class="mob-shell">
+
+  <header class="mob-header">
+    <div class="mob-header-inner">
+      <div class="mob-header-left">
+        <button class="mob-menu-btn" id="menuBtn"><i class="fas fa-bars"></i></button>
+        <h1 style="font-size:1.05rem;">Transaction History</h1>
+      </div>
+      <div class="mob-header-right">
+        <button class="mob-icon-btn" id="downloadBtn" title="Download"><i class="fas fa-download"></i></button>
+      </div>
+    </div>
+  </header>
+
+  <div class="filter-tabs">
+    <button class="filter-tab active" data-filter="all">All</button>
+    <button class="filter-tab" data-filter="in">Money In</button>
+    <button class="filter-tab" data-filter="out">Money Out</button>
+    <button class="filter-tab" data-filter="fees">Fees</button>
+  </div>
+
+  <div class="search-box">
+    <i class="fas fa-magnifying-glass"></i>
+    <input type="text" id="searchInput" placeholder="Search by reference or name…" />
+  </div>
+
+  <div class="mob-pad" style="padding-bottom:30px;">
+    <div class="card" style="padding:0;overflow:hidden;" id="txCard">
+      <div id="txList">
+        <div class="empty-state"><i class="fas fa-circle-notch fa-spin"></i><p>Loading…</p></div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<nav class="bottom-nav">
+  <a href="dashboard.html" class="bottom-nav-item"><i class="fas fa-house"></i><span>Home</span></a>
+  <a href="history.html" class="bottom-nav-item active"><i class="fas fa-clock-rotate-left"></i><span>History</span></a>
+  <a href="#" id="bottomNavMenu" class="bottom-nav-item"><i class="fas fa-bars"></i><span>Menu</span></a>
+  <a href="stocks.html" class="bottom-nav-item"><i class="fas fa-chart-line"></i><span>Stocks</span></a>
+  <a href="profile.html" class="bottom-nav-item"><i class="fas fa-user"></i><span>Profile</span></a>
+</nav>
+
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore-compat.js"></script>
+<script src="firebase-config.js"></script>
+<script src="drawer.js"></script>
+
+<script>
+let currentUid = null, userProfile = null;
+let txOut = [], txIn = [];
+let activeFilter = 'all';
+let searchQuery = '';
+let outLoaded = false, inLoaded = false;
+
+auth.onAuthStateChanged(async (user) => {
+  if (!user) { window.location.href = 'login.html'; return; }
+  const snap = await db.collection('swifttrust_users').doc(user.uid).get();
+  if (!snap.exists) { await auth.signOut(); window.location.href = 'login.html'; return; }
+  const d = snap.data();
+  if (d.status !== 'approved') { await auth.signOut(); window.location.href = 'login.html'; return; }
+  currentUid = user.uid;
+  userProfile = d;
+
+  // No orderBy — sorts in JS
+  db.collection('swifttrust_transactions')
+    .where('fromUid', '==', currentUid)
+    .onSnapshot(s => {
+      outLoaded = true;
+      txOut = [];
+      s.forEach(doc => txOut.push({ id: doc.id, ...doc.data() }));
+      render();
+    }, e => { console.error(e); outLoaded = true; render(); });
+
+  db.collection('swifttrust_transactions')
+    .where('toUid', '==', currentUid)
+    .onSnapshot(s => {
+      inLoaded = true;
+      txIn = [];
+      s.forEach(doc => txIn.push({ id: doc.id, ...doc.data() }));
+      render();
+    }, e => { console.error(e); inLoaded = true; render(); });
+});
+
+document.querySelectorAll('.filter-tab').forEach(t => {
+  t.addEventListener('click', () => {
+    document.querySelectorAll('.filter-tab').forEach(x => x.classList.remove('active'));
+    t.classList.add('active');
+    activeFilter = t.dataset.filter;
+    render();
+  });
+});
+
+document.getElementById('searchInput').addEventListener('input', e => {
+  searchQuery = e.target.value.trim().toLowerCase();
+  render();
+});
+
+document.getElementById('downloadBtn').addEventListener('click', () => {
+  stbToast('Statement download coming soon.', 'info');
+});
+
+function render() {
+  const el = document.getElementById('txList');
+
+  if (!outLoaded || !inLoaded) {
+    el.innerHTML = `<div class="empty-state"><i class="fas fa-circle-notch fa-spin"></i><p>Loading…</p></div>`;
+    return;
+  }
+
+  // Merge and dedupe
+  const map = new Map();
+  txOut.forEach(t => map.set(t.id, { ...t, _dir: 'out' }));
+  txIn.forEach(t => {
+    if (map.has(t.id)) {
+      const existing = map.get(t.id);
+      existing._dir = existing._dir === 'out' ? 'both' : 'in';
+    } else {
+      map.set(t.id, { ...t, _dir: 'in' });
+    }
+  });
+  let all = Array.from(map.values());
+
+  // Sort desc by createdAt
+  all.sort((a, b) => {
+    const ta = a.createdAt?.toDate?.()?.getTime?.() || 0;
+    const tb = b.createdAt?.toDate?.()?.getTime?.() || 0;
+    return tb - ta;
+  });
+
+  // Filter
+  if (activeFilter === 'in') {
+    all = all.filter(t => t.toUid === currentUid && t.type !== 'fee' && t.type !== 'save_lock');
+  } else if (activeFilter === 'out') {
+    all = all.filter(t => t.fromUid === currentUid && t.type !== 'fee');
+  } else if (activeFilter === 'fees') {
+    all = all.filter(t => t.type === 'fee');
+  }
+
+  // Search
+  if (searchQuery) {
+    all = all.filter(t => {
+      const hay = [
+        t.reference, t.description, t.toAccountName, t.fromAccountName,
+        t.toAccountNumber, t.fromAccountNumber, t.toBank
+      ].filter(Boolean).join(' ').toLowerCase();
+      return hay.includes(searchQuery);
+    });
+  }
+
+  if (all.length === 0) {
+    el.innerHTML = `<div class="empty-state"><i class="fas fa-receipt"></i><p>No transactions match your filter.</p></div>`;
+    return;
+  }
+
+  // Group by date
+  const groups = {};
+  all.forEach(t => {
+    const d = t.createdAt?.toDate ? t.createdAt.toDate() : new Date();
+    const key = d.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric', year: 'numeric' });
+    if (!groups[key]) groups[key] = [];
+    groups[key].push(t);
+  });
+
+  let html = '';
+  Object.keys(groups).forEach(dateKey => {
+    html += `<div class="date-header">${dateKey}</div>`;
+    groups[dateKey].forEach(t => { html += rowHTML(t); });
+  });
+  el.innerHTML = html;
+}
+
+function rowHTML(t) {
+  const isOut = t.fromUid === currentUid;
+  const isFee = t.type === 'fee';
+  const isIn = t.toUid === currentUid && !isFee;
+
+  let iconCls = 'out', icon = 'fa-arrow-up', sign = '-', amtCls = 'neg';
+  let title = '';
+
+  if (isFee) {
+    iconCls = 'fee'; icon = 'fa-percent'; sign = '-'; amtCls = 'neg';
+    title = 'Transfer fee';
+  } else if (t.type === 'stock_buy' || t.type === 'stock_sell') {
+    iconCls = 'stock'; icon = 'fa-chart-line';
+    sign = t.type === 'stock_buy' ? '-' : '+';
+    amtCls = t.type === 'stock_buy' ? 'neg' : 'pos';
+    title = t.description || (t.type === 'stock_buy' ? 'Stock purchase' : 'Stock sale');
+  } else if (t.type === 'save_lock') {
+    iconCls = 'save'; icon = 'fa-lock'; sign = '-'; amtCls = 'neg';
+    title = 'Funds locked';
+  } else if (t.type === 'save_release') {
+    iconCls = 'in'; icon = 'fa-unlock'; sign = '+'; amtCls = 'pos';
+    title = 'Save released';
+  } else if (t.type === 'internal_move') {
+    iconCls = 'save'; icon = 'fa-right-left'; sign = '↔'; amtCls = 'pos';
+    title = t.description || 'Between your accounts';
+  } else if (t.type === 'admin_credit') {
+    iconCls = 'in'; icon = 'fa-circle-plus'; sign = '+'; amtCls = 'pos';
+    title = t.description || 'Deposit';
+  } else if (t.type === 'admin_debit') {
+    iconCls = 'out'; icon = 'fa-circle-minus'; sign = '-'; amtCls = 'neg';
+    title = t.description || 'Adjustment';
+  } else if (isIn) {
+    iconCls = 'in'; icon = 'fa-arrow-down'; sign = '+'; amtCls = 'pos';
+    title = `From ${t.fromAccountName || t.fromAccountNumber}`;
+  } else {
+    iconCls = 'out'; icon = 'fa-arrow-up'; sign = '-'; amtCls = 'neg';
+    title = t.toBank
+      ? `To ${t.toAccountName} · ${t.toBank}`
+      : `To ${t.toAccountName || t.toAccountNumber}`;
+  }
+
+  const when = t.createdAt?.toDate
+    ? t.createdAt.toDate().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })
+    : '';
+
+  const amtDisplay = sign === '↔' ? stbMoney(t.amount) : (sign + stbMoney(t.amount));
+
+  return `
+    <div class="tx-row">
+      <div class="tx-icon ${iconCls}"><i class="fas ${icon}"></i></div>
+      <div class="tx-main">
+        <div class="tx-desc">${title}</div>
+        <div class="tx-meta">${when}${t.reference ? ' · ' + t.reference : ''}</div>
+      </div>
+      <div class="tx-amt ${amtCls}">${amtDisplay}</div>
+    </div>
+  `;
+}
+</script>
+</body>
+</html>

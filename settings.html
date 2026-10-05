@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<title>Settings — SwiftTrust Bank</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="mob-shell">
+
+  <header class="mob-header">
+    <div class="mob-header-inner">
+      <div class="mob-header-left">
+        <button class="mob-menu-btn" id="menuBtn"><i class="fas fa-bars"></i></button>
+        <h1 style="font-size:1.05rem;">Settings</h1>
+      </div>
+      <div class="mob-header-right">
+        <a href="profile.html" class="mob-icon-btn" title="Back to profile"><i class="fas fa-user"></i></a>
+      </div>
+    </div>
+  </header>
+
+  <div class="mob-pad" style="padding-top:18px;">
+
+    <!-- Change PIN -->
+    <div class="card mb-3">
+      <div class="card-head">
+        <h3><i class="fas fa-key" style="color:var(--blue);margin-right:8px;"></i>Change transaction PIN</h3>
+      </div>
+      <p style="font-size:.82rem;color:var(--text-faint);margin-bottom:18px;">
+        Your transaction PIN is required for every outgoing transfer and stock trade.
+      </p>
+
+      <div class="form-alert" id="pinAlert"></div>
+
+      <form id="pinForm">
+        <div class="field">
+          <label>Current PIN</label>
+          <input type="password" id="oldPin" placeholder="••••" maxlength="4" inputmode="numeric" pattern="\d{4}" required />
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label>New PIN</label>
+            <input type="password" id="newPin" placeholder="••••" maxlength="4" inputmode="numeric" pattern="\d{4}" required />
+          </div>
+          <div class="field">
+            <label>Confirm new PIN</label>
+            <input type="password" id="newPin2" placeholder="••••" maxlength="4" inputmode="numeric" pattern="\d{4}" required />
+          </div>
+        </div>
+        <button type="submit" class="btn btn-primary" id="pinSubmit">
+          <i class="fas fa-key"></i> Update PIN
+        </button>
+      </form>
+    </div>
+
+    <!-- Change password -->
+    <div class="card mb-3">
+      <div class="card-head">
+        <h3><i class="fas fa-lock" style="color:var(--blue);margin-right:8px;"></i>Change password</h3>
+      </div>
+      <p style="font-size:.82rem;color:var(--text-faint);margin-bottom:18px;">
+        Use at least 8 characters. Choose something strong that you don't use elsewhere.
+      </p>
+
+      <div class="form-alert" id="pwAlert"></div>
+
+      <form id="pwForm">
+        <div class="field">
+          <label>Current password</label>
+          <input type="password" id="oldPw" placeholder="Your current password" required />
+        </div>
+        <div class="field">
+          <label>New password</label>
+          <input type="password" id="newPw" placeholder="At least 8 characters" minlength="8" required />
+        </div>
+        <div class="field">
+          <label>Confirm new password</label>
+          <input type="password" id="newPw2" placeholder="Repeat new password" minlength="8" required />
+        </div>
+        <button type="submit" class="btn btn-primary" id="pwSubmit">
+          <i class="fas fa-lock"></i> Update password
+        </button>
+      </form>
+    </div>
+
+    <!-- Sign out -->
+    <button class="btn btn-danger btn-block btn-lg" id="signOutBtn" style="margin-bottom:40px;">
+      <i class="fas fa-arrow-right-from-bracket"></i> Sign out
+    </button>
+
+    <div style="text-align:center;font-size:.72rem;color:var(--text-faint);margin-bottom:40px;">
+      SwiftTrust Bank v1.0 · Member FDIC
+    </div>
+
+  </div>
+</div>
+
+<nav class="bottom-nav">
+  <a href="dashboard.html" class="bottom-nav-item"><i class="fas fa-house"></i><span>Home</span></a>
+  <a href="history.html" class="bottom-nav-item"><i class="fas fa-clock-rotate-left"></i><span>History</span></a>
+  <a href="#" id="bottomNavMenu" class="bottom-nav-item"><i class="fas fa-bars"></i><span>Menu</span></a>
+  <a href="stocks.html" class="bottom-nav-item"><i class="fas fa-chart-line"></i><span>Stocks</span></a>
+  <a href="profile.html" class="bottom-nav-item"><i class="fas fa-user"></i><span>Profile</span></a>
+</nav>
+
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore-compat.js"></script>
+<script src="firebase-config.js"></script>
+<script src="drawer.js"></script>
+
+<script>
+const $ = id => document.getElementById(id);
+let currentUid = null, userProfile = null;
+
+function showAlert(el, msg, type) {
+  el.textContent = msg;
+  el.className = 'form-alert show ' + (type || 'error');
+}
+
+auth.onAuthStateChanged(async (user) => {
+  if (!user) { window.location.href = 'login.html'; return; }
+  const snap = await db.collection('swifttrust_users').doc(user.uid).get();
+  if (!snap.exists) { await auth.signOut(); window.location.href = 'login.html'; return; }
+  const d = snap.data();
+  if (d.status !== 'approved') { await auth.signOut(); window.location.href = 'login.html'; return; }
+  currentUid = user.uid;
+  userProfile = d;
+});
+
+// CHANGE PIN
+$('pinForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const a = $('pinAlert');
+  a.className = 'form-alert';
+
+  const oldPin = $('oldPin').value.trim();
+  const newPin = $('newPin').value.trim();
+  const newPin2 = $('newPin2').value.trim();
+
+  if (!/^\d{4}$/.test(oldPin)) { showAlert(a, 'Current PIN must be 4 digits.'); return; }
+  if (!/^\d{4}$/.test(newPin)) { showAlert(a, 'New PIN must be 4 digits.'); return; }
+  if (newPin !== newPin2) { showAlert(a, 'New PINs do not match.'); return; }
+  if (newPin === oldPin) { showAlert(a, 'New PIN must be different from current PIN.'); return; }
+
+  if (stbHashPin(oldPin) !== userProfile.pinHash) {
+    showAlert(a, 'Current PIN is incorrect.');
+    return;
+  }
+
+  $('pinSubmit').disabled = true;
+  $('pinSubmit').innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Updating…';
+
+  try {
+    await db.collection('swifttrust_users').doc(currentUid).update({
+      pinHash: stbHashPin(newPin)
+    });
+    userProfile.pinHash = stbHashPin(newPin);
+    showAlert(a, 'Transaction PIN updated successfully.', 'success');
+    $('pinForm').reset();
+  } catch (err) {
+    console.error(err);
+    showAlert(a, 'Failed to update PIN. Try again.');
+  } finally {
+    $('pinSubmit').disabled = false;
+    $('pinSubmit').innerHTML = '<i class="fas fa-key"></i> Update PIN';
+  }
+});
+
+// CHANGE PASSWORD
+$('pwForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const a = $('pwAlert');
+  a.className = 'form-alert';
+
+  const oldPw = $('oldPw').value;
+  const newPw = $('newPw').value;
+  const newPw2 = $('newPw2').value;
+
+  if (newPw.length < 8) { showAlert(a, 'New password must be at least 8 characters.'); return; }
+  if (newPw !== newPw2) { showAlert(a, 'New passwords do not match.'); return; }
+  if (newPw === oldPw) { showAlert(a, 'New password must be different from current password.'); return; }
+
+  $('pwSubmit').disabled = true;
+  $('pwSubmit').innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Updating…';
+
+  try {
+    const user = auth.currentUser;
+    const cred = firebase.auth.EmailAuthProvider.credential(user.email, oldPw);
+    await user.reauthenticateWithCredential(cred);
+    await user.updatePassword(newPw);
+
+    showAlert(a, 'Password updated successfully.', 'success');
+    $('pwForm').reset();
+  } catch (err) {
+    console.error(err);
+    let msg = 'Failed to update password.';
+    if (err.code === 'auth/wrong-password') msg = 'Current password is incorrect.';
+    else if (err.code === 'auth/weak-password') msg = 'New password is too weak.';
+    else if (err.code === 'auth/requires-recent-login') msg = 'Please sign out and sign in again, then retry.';
+    showAlert(a, msg);
+  } finally {
+    $('pwSubmit').disabled = false;
+    $('pwSubmit').innerHTML = '<i class="fas fa-lock"></i> Update password';
+  }
+});
+
+// SIGN OUT
+$('signOutBtn').addEventListener('click', async () => {
+  if (!confirm('Sign out of SwiftTrust?')) return;
+  await auth.signOut();
+  window.location.href = 'login.html';
+});
+</script>
+</body>
+</html>

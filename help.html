@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<title>Help & Support — SwiftTrust Bank</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<link rel="stylesheet" href="style.css">
+<style>
+  .help-hero {
+    margin: 18px;
+    border-radius: var(--radius-xl);
+    background: linear-gradient(150deg, #0a2d5e, #1e4d8f);
+    color: #fff; padding: 26px 22px;
+    position: relative; overflow: hidden;
+  }
+  .help-hero::after {
+    content: ''; position: absolute;
+    width: 260px; height: 260px; border-radius: 50%;
+    background: radial-gradient(circle, rgba(77,142,232,.35), transparent 70%);
+    top: -100px; right: -80px;
+  }
+  .help-hero-inner { position: relative; z-index: 1; }
+  .help-hero h2 { color: #fff; font-size: 1.4rem; margin-bottom: 6px; }
+  .help-hero p { color: #b8c9e6; font-size: .88rem; }
+  .help-hero .help-badge {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: rgba(74,222,128,.16);
+    border: 1px solid rgba(74,222,128,.32);
+    color: #86efac; padding: 4px 10px; border-radius: 999px;
+    font-size: .68rem; font-weight: 700; letter-spacing: .05em;
+    margin-bottom: 14px;
+  }
+
+  .help-search {
+    margin: 0 18px 18px; position: relative;
+  }
+  .help-search i {
+    position: absolute; left: 14px; top: 50%; transform: translateY(-50%);
+    color: var(--text-faint); font-size: .88rem;
+  }
+  .help-search input {
+    width: 100%; padding: 13px 14px 13px 42px;
+    border: 1px solid var(--line-2); border-radius: 14px;
+    font-family: inherit; font-size: .9rem; background: #fff; color: var(--ink);
+  }
+  .help-search input:focus {
+    outline: none; border-color: var(--blue);
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, .12);
+  }
+
+  .help-section {
+    margin: 0 18px 18px;
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+  }
+  .help-section-title {
+    padding: 14px 18px 8px;
+    font-size: .7rem; font-weight: 700; letter-spacing: .1em;
+    color: var(--text-faint); text-transform: uppercase;
+    background: var(--bg); border-bottom: 1px solid var(--line);
+  }
+
+  .faq {
+    border-bottom: 1px solid var(--line);
+  }
+  .faq:last-child { border-bottom: none; }
+  .faq-q {
+    display: flex; justify-content: space-between; align-items: center;
+    gap: 14px;
+    padding: 16px 18px;
+    font-size: .9rem; font-weight: 600; color: var(--ink);
+    cursor: pointer;
+    transition: background .12s;
+  }
+  .faq-q:hover { background: #fafcfe; }
+  .faq-q i { color: var(--text-faint); transition: transform .2s; flex-shrink: 0; }
+  .faq.open .faq-q i { transform: rotate(180deg); }
+  .faq-a {
+    max-height: 0; overflow: hidden;
+    transition: max-height .3s ease;
+    padding: 0 18px;
+    font-size: .85rem; color: var(--text-dim); line-height: 1.6;
+  }
+  .faq.open .faq-a { max-height: 500px; padding: 0 18px 18px; }
+
+  .contact-row {
+    display: flex; align-items: center; gap: 14px;
+    padding: 16px 18px;
+    border-bottom: 1px solid var(--line);
+    cursor: pointer; transition: background .12s;
+    text-decoration: none; color: inherit;
+  }
+  .contact-row:last-child { border-bottom: none; }
+  .contact-row:hover { background: #fafcfe; text-decoration: none; }
+  .contact-icon {
+    width: 42px; height: 42px; border-radius: 12px;
+    background: var(--blue-soft); color: var(--blue);
+    display: grid; place-items: center; font-size: 1rem;
+    flex-shrink: 0;
+  }
+  .contact-main { flex: 1; }
+  .contact-title { font-size: .9rem; font-weight: 700; color: var(--ink); }
+  .contact-sub { font-size: .78rem; color: var(--text-faint); margin-top: 2px; }
+  .contact-arrow { color: var(--text-faint); font-size: .85rem; }
+
+  .security-tip {
+    display: flex; gap: 12px; padding: 14px 18px;
+    border-bottom: 1px solid var(--line);
+    align-items: flex-start;
+  }
+  .security-tip:last-child { border-bottom: none; }
+  .security-tip i {
+    color: var(--green); font-size: 1rem; margin-top: 3px; flex-shrink: 0;
+  }
+  .security-tip strong {
+    display: block; font-size: .88rem; color: var(--ink); margin-bottom: 2px;
+  }
+  .security-tip span { font-size: .82rem; color: var(--text-dim); line-height: 1.5; }
+
+  .support-footer {
+    margin: 0 18px 40px;
+    background: var(--bg);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+    padding: 20px;
+    text-align: center;
+  }
+  .support-footer i { color: var(--blue); font-size: 1.4rem; margin-bottom: 8px; display: block; }
+  .support-footer strong { display: block; font-size: .92rem; color: var(--ink); margin-bottom: 4px; }
+  .support-footer p { font-size: .8rem; color: var(--text-faint); }
+</style>
+</head>
+<body>
+
+<div class="mob-shell">
+
+  <header class="mob-header">
+    <div class="mob-header-inner">
+      <div class="mob-header-left">
+        <button class="mob-menu-btn" id="menuBtn"><i class="fas fa-bars"></i></button>
+        <h1 style="font-size:1.05rem;">Help & Support</h1>
+      </div>
+    </div>
+  </header>
+
+  <section class="help-hero">
+    <div class="help-hero-inner">
+      <div class="help-badge"><i class="fas fa-circle"></i> We're here 24/7</div>
+      <h2>How can we help?</h2>
+      <p>Search our FAQs or reach a specialist for account, transfer, or security questions.</p>
+    </div>
+  </section>
+
+  <div class="help-search">
+    <i class="fas fa-magnifying-glass"></i>
+    <input type="text" id="helpSearch" placeholder="Search help topics…" />
+  </div>
+
+  <!-- QUICK CONTACT -->
+  <div class="help-section">
+    <div class="help-section-title">Contact us</div>
+
+    <a href="tel:+18005550100" class="contact-row">
+      <div class="contact-icon"><i class="fas fa-phone"></i></div>
+      <div class="contact-main">
+        <div class="contact-title">Call customer service</div>
+        <div class="contact-sub">1-000-500-0100 · 24/7 · Free from any phone</div>
+      </div>
+      <i class="fas fa-chevron-right contact-arrow"></i>
+    </a>
+
+    <a href="mailto:support@swifttrust.example" class="contact-row">
+      <div class="contact-icon"><i class="fas fa-envelope"></i></div>
+      <div class="contact-main">
+        <div class="contact-title">Email support</div>
+        <div class="contact-sub">swiftrust027@gmail.com Replies in under 24 hours</div>
+      </div>
+      <i class="fas fa-chevron-right contact-arrow"></i>
+    </a>
+
+    <div class="contact-row" id="chatRow">
+      <div class="contact-icon"><i class="fas fa-comment-dots"></i></div>
+      <div class="contact-main">
+        <div class="contact-title">Live chat</div>
+        <div class="contact-sub">Average wait time: 2 minutes</div>
+      </div>
+      <i class="fas fa-chevron-right contact-arrow"></i>
+    </div>
+
+    <div class="contact-row" id="reportRow">
+      <div class="contact-icon" style="background:var(--red-soft);color:var(--red);">
+        <i class="fas fa-triangle-exclamation"></i>
+      </div>
+      <div class="contact-main">
+        <div class="contact-title">Report fraud or a lost card</div>
+        <div class="contact-sub">Available 24/7 · Immediate account freeze</div>
+      </div>
+      <i class="fas fa-chevron-right contact-arrow"></i>
+    </div>
+  </div>
+
+  <!-- FAQ -->
+  <div class="help-section" id="faqSection">
+    <div class="help-section-title">Frequently asked questions</div>
+
+    <div class="faq">
+      <div class="faq-q"><span>How do I send money to another SwiftTrust customer?</span><i class="fas fa-chevron-down"></i></div>
+      <div class="faq-a">From your dashboard, tap <strong>To SwiftTrust</strong>. Enter the recipient's 10-digit account number and the amount. You'll confirm the transfer with your 4-digit transaction PIN, then with a transfer code issued by SwiftTrust. Transfers are processed instantly.</div>
+    </div>
+
+    <div class="faq">
+      <div class="faq-q"><span>What is a transfer code and where do I get one?</span><i class="fas fa-chevron-down"></i></div>
+      <div class="faq-a">A transfer code is a unique authorization code issued by SwiftTrust for every transfer. It confirms that the transfer has been reviewed and approved. You can request a code by contacting customer service, and it will be delivered to you directly. Each code is single-use and expires after a set time.</div>
+    </div>
+
+    <div class="faq">
+      <div class="faq-q"><span>How long do transfers take to arrive?</span><i class="fas fa-chevron-down"></i></div>
+      <div class="faq-a">Transfers between SwiftTrust accounts are <strong>instant</strong>. Transfers to external banks typically settle the same business day. You'll see the transfer in your transaction history as soon as it's submitted.</div>
+    </div>
+
+    <div class="faq">
+      <div class="faq-q"><span>Is there a fee for transfers?</span><i class="fas fa-chevron-down"></i></div>
+      <div class="faq-a">SwiftTrust charges a flat <strong>3% transfer fee</strong> on all outgoing transfers, whether to another SwiftTrust customer or an external bank. There are no monthly account fees, no minimum balance requirements, and no fees for incoming transfers.</div>
+    </div>
+
+    <div class="faq">
+      <div class="faq-q"><span>What is High-Yield Savings?</span><i class="fas fa-chevron-down"></i></div>
+      <div class="faq-a">High-Yield Savings is a savings account that lets you grow your balance at a competitive rate while keeping your funds separate from everyday spending. You can move money between Checking and High-Yield Savings any time using the <strong>Move money</strong> feature.</div>
+    </div>
+
+    <div class="faq">
+      <div class="faq-q"><span>What is a Save lock?</span><i class="fas fa-chevron-down"></i></div>
+      <div class="faq-a">A Save lock lets you commit funds for a fixed period — from 7 days up to 1 year — to earn 4.5% APY. Funds are held in the lock until the maturity date. When the lock matures, you can release the funds back to your checking account with a single tap.</div>
+    </div>
+
+    <div class="faq">
+      <div class="faq-q"><span>How do I buy stocks?</span><i class="fas fa-chevron-down"></i></div>
+      <div class="faq-a">Open the <strong>Stocks</strong> tab, choose a company from the Market, and tap <strong>Buy</strong>. Enter how many shares you want, review the order, and confirm with your transaction PIN. Stock purchases and sales settle instantly from your checking account.</div>
+    </div>
+
+    <div class="faq">
+      <div class="faq-q"><span>How do I change my transaction PIN?</span><i class="fas fa-chevron-down"></i></div>
+      <div class="faq-a">Go to <strong>Profile</strong> → <strong>Change transaction PIN</strong>. Enter your current PIN, then your new 4-digit PIN twice. If you've forgotten your PIN, contact customer service — we'll verify your identity and help you reset it.</div>
+    </div>
+
+    <div class="faq">
+      <div class="faq-q"><span>How do I change my password?</span><i class="fas fa-chevron-down"></i></div>
+      <div class="faq-a">Go to <strong>Profile</strong> → <strong>Change password</strong>. For security, you'll need to enter your current password first. Passwords must be at least 8 characters and should combine letters, numbers, and symbols.</div>
+    </div>
+
+    <div class="faq">
+      <div class="faq-q"><span>What should I do if I lose my phone?</span><i class="fas fa-chevron-down"></i></div>
+      <div class="faq-a">Contact us immediately using the <strong>Report fraud or a lost card</strong> option above. We'll temporarily freeze your account and help you regain access from a new device. Never share your password or transaction PIN with anyone — SwiftTrust will never ask for them.</div>
+    </div>
+
+    <div class="faq">
+      <div class="faq-q"><span>I see a transaction I don't recognize. What now?</span><i class="fas fa-chevron-down"></i></div>
+      <div class="faq-a">Open your <strong>Transaction History</strong> to review the full record. If you still don't recognize a charge, tap <strong>Report fraud</strong> at the top of this page. We investigate every report and will contact you within 24 hours.</div>
+    </div>
+
+    <div class="faq">
+      <div class="faq-q"><span>How do I close my account?</span><i class="fas fa-chevron-down"></i></div>
+      <div class="faq-a">Transfer any remaining funds to an external account, then contact customer service to request closure. Accounts with a non-zero balance cannot be closed until the balance is withdrawn. Any active Save locks must mature or be released first.</div>
+    </div>
+  </div>
+
+  <!-- SECURITY -->
+  <div class="help-section">
+    <div class="help-section-title">Keeping your account safe</div>
+
+    <div class="security-tip">
+      <i class="fas fa-check-circle"></i>
+      <div>
+        <strong>Never share your PIN or password</strong>
+        <span>SwiftTrust will never call, text, or email asking for your password, transaction PIN, or one-time codes.</span>
+      </div>
+    </div>
+
+    <div class="security-tip">
+      <i class="fas fa-check-circle"></i>
+      <div>
+        <strong>Watch for phishing</strong>
+        <span>Always check that the URL reads <em>swifttrust</em> before signing in. We never link to login pages from unexpected emails or texts.</span>
+      </div>
+    </div>
+
+    <div class="security-tip">
+      <i class="fas fa-check-circle"></i>
+      <div>
+        <strong>Use a strong, unique password</strong>
+        <span>Combine upper and lower case letters, numbers, and symbols. Don't reuse a password from another site.</span>
+      </div>
+    </div>
+
+    <div class="security-tip">
+      <i class="fas fa-check-circle"></i>
+      <div>
+        <strong>Review your activity regularly</strong>
+        <span>Check your transaction history once a week. If something looks off, report it immediately.</span>
+      </div>
+    </div>
+
+    <div class="security-tip">
+      <i class="fas fa-check-circle"></i>
+      <div>
+        <strong>Sign out on shared devices</strong>
+        <span>Always sign out of your account when using a device you don't own.</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="support-footer">
+    <i class="fas fa-headset"></i>
+    <strong>Still need help?</strong>
+    <p>Our specialists are available 24 hours a day, 7 days a week.</p>
+  </div>
+
+</div>
+
+<nav class="bottom-nav">
+  <a href="dashboard.html" class="bottom-nav-item"><i class="fas fa-house"></i><span>Home</span></a>
+  <a href="history.html" class="bottom-nav-item"><i class="fas fa-clock-rotate-left"></i><span>History</span></a>
+  <a href="#" id="bottomNavMenu" class="bottom-nav-item"><i class="fas fa-bars"></i><span>Menu</span></a>
+  <a href="stocks.html" class="bottom-nav-item"><i class="fas fa-chart-line"></i><span>Stocks</span></a>
+  <a href="profile.html" class="bottom-nav-item"><i class="fas fa-user"></i><span>Profile</span></a>
+</nav>
+
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore-compat.js"></script>
+<script src="firebase-config.js"></script>
+<script src="drawer.js"></script>
+
+<script>
+// Accordion
+document.querySelectorAll('.faq').forEach(f => {
+  f.querySelector('.faq-q').addEventListener('click', () => f.classList.toggle('open'));
+});
+
+// Search filter
+document.getElementById('helpSearch').addEventListener('input', e => {
+  const q = e.target.value.trim().toLowerCase();
+  document.querySelectorAll('.faq').forEach(f => {
+    const text = f.textContent.toLowerCase();
+    f.style.display = q === '' || text.includes(q) ? '' : 'none';
+  });
+});
+
+// Chat + report stubs
+document.getElementById('chatRow').addEventListener('click', () => {
+  stbToast('Live chat is not available in this demo.', 'info');
+});
+document.getElementById('reportRow').addEventListener('click', () => {
+  stbToast('Fraud report submitted. A specialist will reach out within 24 hours.', 'success');
+});
+</script>
+</body>
+</html>

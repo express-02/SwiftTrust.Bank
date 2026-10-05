@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<title>Stock — SwiftTrust Bank</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<link rel="stylesheet" href="style.css">
+<style>
+  .sd-hero {
+    margin: 18px;
+    border-radius: var(--radius-xl);
+    background: linear-gradient(150deg, #0a2d5e, #1e4d8f);
+    color: #fff; padding: 24px;
+    position: relative; overflow: hidden;
+  }
+  .sd-hero::after {
+    content: ''; position: absolute;
+    width: 260px; height: 260px; border-radius: 50%;
+    background: radial-gradient(circle, rgba(77,142,232,.35), transparent 70%);
+    top: -100px; right: -80px;
+  }
+  .sd-hero-inner { position: relative; z-index: 1; }
+  .sd-symbol-chip {
+    display: inline-block;
+    background: rgba(255,255,255,.14);
+    padding: 4px 10px; border-radius: 6px;
+    font-size: .72rem; font-weight: 700; letter-spacing: .06em;
+    margin-bottom: 10px;
+  }
+  .sd-name { font-size: 1.15rem; font-weight: 700; margin-bottom: 14px; }
+  .sd-price { font-size: 2.2rem; font-weight: 700; font-family: 'SF Mono', ui-monospace, monospace; letter-spacing: -.02em; }
+  .sd-chg { display: inline-block; margin-top: 6px; font-size: .85rem; font-weight: 600; }
+
+  .sd-action-row {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
+    margin: 0 18px 18px;
+  }
+  .sd-actions-gap { margin-bottom: 24px; }
+
+  .qty-row {
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px;
+    margin-bottom: 14px;
+  }
+  .qty-chip {
+    padding: 10px; background: var(--bg); border: 1px solid var(--line);
+    border-radius: 10px; font-weight: 600; font-size: .85rem;
+    color: var(--text); font-family: inherit;
+    transition: .15s;
+  }
+  .qty-chip:hover { background: var(--blue-soft); border-color: var(--blue-line); color: var(--blue); }
+  .qty-chip:active { transform: scale(.94); }
+</style>
+</head>
+<body>
+
+<div class="mob-shell">
+
+  <header class="mob-header">
+    <div class="mob-header-inner">
+      <div class="mob-header-left">
+        <a href="stocks.html" class="mob-menu-btn" style="color:var(--ink);"><i class="fas fa-arrow-left"></i></a>
+        <h1 style="font-size:1.05rem;" id="headerTitle">Stock</h1>
+      </div>
+    </div>
+  </header>
+
+  <section class="sd-hero">
+    <div class="sd-hero-inner">
+      <div class="sd-symbol-chip" id="sdSymbol">—</div>
+      <div class="sd-name" id="sdName">—</div>
+      <div class="sd-price" id="sdPrice">$0.00</div>
+      <div class="sd-chg" id="sdChange">—</div>
+    </div>
+  </section>
+
+  <div class="sd-action-row">
+    <button class="btn btn-primary btn-lg" id="buyBtn"><i class="fas fa-plus"></i> Buy</button>
+    <button class="btn btn-outline btn-lg" id="sellBtn"><i class="fas fa-minus"></i> Sell</button>
+  </div>
+
+  <div class="mob-pad sd-actions-gap">
+    <div class="card">
+      <div class="card-head"><h3><i class="fas fa-briefcase" style="color:var(--blue);margin-right:8px;"></i>Your position</h3></div>
+      <div id="positionBox">
+        <div class="empty-state" style="padding:20px;"><p>You don't own this stock yet.</p></div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<nav class="bottom-nav">
+  <a href="dashboard.html" class="bottom-nav-item"><i class="fas fa-house"></i><span>Home</span></a>
+  <a href="history.html" class="bottom-nav-item"><i class="fas fa-clock-rotate-left"></i><span>History</span></a>
+  <a href="#" id="bottomNavMenu" class="bottom-nav-item"><i class="fas fa-bars"></i><span>Menu</span></a>
+  <a href="stocks.html" class="bottom-nav-item active"><i class="fas fa-chart-line"></i><span>Stocks</span></a>
+  <a href="profile.html" class="bottom-nav-item"><i class="fas fa-user"></i><span>Profile</span></a>
+</nav>
+
+<!-- TRADE MODAL -->
+<div class="modal-overlay" id="tradeModal">
+  <div class="modal-panel" style="position:relative;">
+    <button class="modal-close" id="tradeClose"><i class="fas fa-xmark"></i></button>
+    <div class="modal-handle"></div>
+    <div class="modal-title" id="tradeTitle">Buy shares</div>
+    <div class="modal-sub" id="tradeSub">—</div>
+
+    <div class="field">
+      <label>Number of shares</label>
+      <input type="number" id="tradeQty" placeholder="1" min="1" step="1" value="1" />
+    </div>
+    <div class="qty-row">
+      <button class="qty-chip" data-qty="1">1</button>
+      <button class="qty-chip" data-qty="5">5</button>
+      <button class="qty-chip" data-qty="10">10</button>
+      <button class="qty-chip" data-qty="25">25</button>
+    </div>
+
+    <div style="background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:14px;margin:14px 0;">
+      <div style="display:flex;justify-content:space-between;font-size:.88rem;padding:4px 0;">
+        <span style="color:var(--text-dim);">Price per share</span>
+        <span id="tradePrice">$0.00</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;font-size:.88rem;padding:4px 0;">
+        <span style="color:var(--text-dim);">Shares</span>
+        <span id="tradeShares">1</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;font-size:.88rem;padding:4px 0;">
+        <span style="color:var(--text-dim);">Commission</span>
+        <span style="color:var(--green);font-weight:600;">Free</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;font-size:1rem;font-weight:700;border-top:1px solid var(--line);padding-top:10px;margin-top:6px;">
+        <span>Total</span>
+        <span id="tradeTotal">$0.00</span>
+      </div>
+    </div>
+
+    <div class="field" id="sourceAccField">
+      <label>Pay from</label>
+      <select id="tradeAccount"></select>
+    </div>
+
+    <div class="form-alert" id="tradeAlert"></div>
+
+    <button class="btn btn-primary btn-block btn-lg" id="tradeContinue">
+      Review order <i class="fas fa-arrow-right"></i>
+    </button>
+  </div>
+</div>
+
+<!-- PIN MODAL -->
+<div class="modal-overlay" id="pinModal">
+  <div class="modal-panel" style="position:relative;">
+    <button class="modal-close" id="pinClose"><i class="fas fa-xmark"></i></button>
+    <div class="modal-handle"></div>
+    <div class="modal-title">Enter your PIN</div>
+    <div class="modal-sub">Confirm this trade with your transaction PIN.</div>
+
+    <div class="pin-dots">
+      <div class="pin-dot"></div><div class="pin-dot"></div>
+      <div class="pin-dot"></div><div class="pin-dot"></div>
+    </div>
+
+    <div class="keypad">
+      <button class="keypad-key" data-key="1">1</button>
+      <button class="keypad-key" data-key="2">2</button>
+      <button class="keypad-key" data-key="3">3</button>
+      <button class="keypad-key" data-key="4">4</button>
+      <button class="keypad-key" data-key="5">5</button>
+      <button class="keypad-key" data-key="6">6</button>
+      <button class="keypad-key" data-key="7">7</button>
+      <button class="keypad-key" data-key="8">8</button>
+      <button class="keypad-key" data-key="9">9</button>
+      <button class="keypad-key empty"></button>
+      <button class="keypad-key" data-key="0">0</button>
+      <button class="keypad-key" data-key="del"><i class="fas fa-delete-left"></i></button>
+    </div>
+  </div>
+</div>
+
+<!-- SUCCESS -->
+<div class="success-overlay" id="successOverlay">
+  <svg class="success-check" viewBox="0 0 52 52">
+    <circle cx="26" cy="26" r="24"/>
+    <path d="M14 27 L22 35 L38 19"/>
+  </svg>
+  <div class="success-title" id="successTitle">Trade complete</div>
+  <div class="success-sub" id="successSub">—</div>
+  <div class="success-amount" id="successAmount">—</div>
+  <div class="success-ref" id="successRef">—</div>
+  <div class="success-actions">
+    <a href="stocks.html" class="btn btn-outline btn-block">Back to Stocks</a>
+    <a href="dashboard.html" class="btn btn-primary btn-block">Dashboard</a>
+  </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore-compat.js"></script>
+<script src="firebase-config.js"></script>
+<script src="drawer.js"></script>
+
+<script>
+const STOCK_MASTER = {
+  AAPL:{name:'Apple Inc.',price:189.42}, MSFT:{name:'Microsoft Corp.',price:421.88},
+  GOOGL:{name:'Alphabet Inc.',price:172.15}, AMZN:{name:'Amazon.com Inc.',price:198.35},
+  NVDA:{name:'NVIDIA Corp.',price:138.22}, TSLA:{name:'Tesla Inc.',price:249.10},
+  META:{name:'Meta Platforms',price:585.40}, NFLX:{name:'Netflix Inc.',price:812.55},
+  AMD:{name:'Advanced Micro Devices',price:158.70}, JPM:{name:'JPMorgan Chase',price:218.30},
+  V:{name:'Visa Inc.',price:302.65}, JNJ:{name:'Johnson & Johnson',price:152.90},
+  WMT:{name:'Walmart Inc.',price:82.45}, DIS:{name:'Walt Disney Co.',price:96.20},
+  KO:{name:'Coca-Cola Co.',price:63.15}, PEP:{name:'PepsiCo Inc.',price:168.40},
+  BAC:{name:'Bank of America',price:42.85}, XOM:{name:'Exxon Mobil',price:112.30},
+  PFE:{name:'Pfizer Inc.',price:26.50}, INTC:{name:'Intel Corp.',price:22.80}
+};
+
+const urlSymbol = (new URLSearchParams(location.search).get('symbol') || 'AAPL').toUpperCase();
+if (!STOCK_MASTER[urlSymbol]) { window.location.href = 'stocks.html'; }
+
+let livePrice = STOCK_MASTER[urlSymbol].price;
+let adminOverride = null;
+
+// Admin price overrides
+db.collection('swifttrust_market').doc(urlSymbol).onSnapshot(d => {
+  adminOverride = d.exists ? Number(d.data().price) : null;
+  if (adminOverride != null) livePrice = adminOverride;
+  renderHero();
+});
+
+setInterval(() => {
+  const delta = livePrice * (Math.random() * 0.003 - 0.0015);
+  livePrice = Math.max(0.01, livePrice + delta);
+  renderHero();
+}, 4000);
+
+let currentUid = null, userProfile = null;
+let myAccounts = [], holdings = [], thisHolding = null;
+let tradeSide = 'buy', enteredPin = '';
+let pendingTrade = null;
+
+const $ = id => document.getElementById(id);
+
+$('headerTitle').textContent = urlSymbol;
+
+function basePrice() {
+  return adminOverride != null ? adminOverride : STOCK_MASTER[urlSymbol].price;
+}
+
+function renderHero() {
+  const base = basePrice();
+  const chg = ((livePrice - base) / base) * 100;
+  const sign = chg >= 0 ? '+' : '';
+  $('sdSymbol').textContent = urlSymbol;
+  $('sdName').textContent = STOCK_MASTER[urlSymbol].name;
+  $('sdPrice').textContent = '$' + livePrice.toFixed(2);
+  $('sdChange').innerHTML = `<span style="color:${chg >= 0 ? '#86efac' : '#fca5a5'};">${sign}${chg.toFixed(2)}% today</span>`;
+}
+
+auth.onAuthStateChanged(async (user) => {
+  if (!user) { window.location.href = 'login.html'; return; }
+  const snap = await db.collection('swifttrust_users').doc(user.uid).get();
+  if (!snap.exists) { await auth.signOut(); window.location.href = 'login.html'; return; }
+  const data = snap.data();
+  if (data.status !== 'approved') { await auth.signOut(); window.location.href = 'login.html'; return; }
+  currentUid = user.uid;
+  userProfile = data;
+
+  const accSnap = await db.collection('swifttrust_accounts').where('ownerId', '==', user.uid).get();
+  myAccounts = [];
+  accSnap.forEach(d => myAccounts.push({ id: d.id, ...d.data() }));
+
+  const checkings = myAccounts.filter(a => a.type === 'checking');
+  const sel = $('tradeAccount');
+  sel.innerHTML = (checkings.length ? checkings : myAccounts).map(a =>
+    `<option value="${a.id}">${a.nickname || a.type} — ••••${String(a.accountNumber).slice(-4)} (${stbMoney(a.balance)})</option>`
+  ).join('');
+
+  loadHolding();
+  renderHero();
+});
+
+async function loadHolding() {
+  const snap = await db.collection('swifttrust_holdings')
+    .where('ownerId', '==', currentUid)
+    .where('symbol', '==', urlSymbol)
+    .limit(1).get();
+
+  if (snap.empty) {
+    thisHolding = null;
+    $('positionBox').innerHTML = `<div class="empty-state" style="padding:20px;"><p>You don't own this stock yet.</p></div>`;
+  } else {
+    thisHolding = { id: snap.docs[0].id, ...snap.docs[0].data() };
+    renderPosition();
+  }
+}
+
+function renderPosition() {
+  const value = thisHolding.shares * livePrice;
+  const spent = thisHolding.shares * thisHolding.avgPrice;
+  const gain = value - spent;
+  const pct = spent > 0 ? (gain / spent) * 100 : 0;
+  const color = gain >= 0 ? 'var(--green)' : 'var(--red)';
+  $('positionBox').innerHTML = `
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+      <div><div style="font-size:.72rem;color:var(--text-faint);text-transform:uppercase;font-weight:600;letter-spacing:.06em;">Shares</div>
+        <div style="font-size:1.15rem;font-weight:700;">${thisHolding.shares}</div></div>
+      <div><div style="font-size:.72rem;color:var(--text-faint);text-transform:uppercase;font-weight:600;letter-spacing:.06em;">Avg price</div>
+        <div style="font-size:1.15rem;font-weight:700;">$${thisHolding.avgPrice.toFixed(2)}</div></div>
+      <div><div style="font-size:.72rem;color:var(--text-faint);text-transform:uppercase;font-weight:600;letter-spacing:.06em;">Market value</div>
+        <div style="font-size:1.15rem;font-weight:700;">${stbMoney(value)}</div></div>
+      <div><div style="font-size:.72rem;color:var(--text-faint);text-transform:uppercase;font-weight:600;letter-spacing:.06em;">Total return</div>
+        <div style="font-size:1.15rem;font-weight:700;color:${color};">${gain >= 0 ? '+' : ''}${stbMoney(gain)} (${pct >= 0 ? '+' : ''}${pct.toFixed(2)}%)</div></div>
+    </div>
+  `;
+}
+
+// ============ TRADE MODAL ============
+function openTrade(side) {
+  tradeSide = side;
+  $('tradeTitle').textContent = side === 'buy' ? 'Buy shares' : 'Sell shares';
+  $('tradeSub').textContent = `${STOCK_MASTER[urlSymbol].name} · ${urlSymbol}`;
+  $('tradeQty').value = '1';
+  $('sourceAccField').style.display = side === 'buy' ? 'block' : 'none';
+  $('tradeAlert').className = 'form-alert';
+  $('tradeContinue').innerHTML = 'Review order <i class="fas fa-arrow-right"></i>';
+  $('tradeContinue').disabled = false;
+  updateTradeTotals();
+  $('tradeModal').classList.add('show');
+  document.body.style.overflow = 'hidden';
+}
+$('buyBtn').addEventListener('click', () => openTrade('buy'));
+$('sellBtn').addEventListener('click', () => openTrade('sell'));
+
+$('tradeClose').addEventListener('click', closeTrade);
+$('tradeModal').addEventListener('click', e => { if (e.target.id === 'tradeModal') closeTrade(); });
+
+function closeTrade() {
+  $('tradeModal').classList.remove('show');
+  document.body.style.overflow = '';
+}
+
+$('tradeQty').addEventListener('input', updateTradeTotals);
+document.querySelectorAll('.qty-chip').forEach(c => c.addEventListener('click', () => {
+  $('tradeQty').value = c.dataset.qty;
+  updateTradeTotals();
+}));
+
+function updateTradeTotals() {
+  const qty = Math.max(1, Math.floor(Number($('tradeQty').value || 1)));
+  const total = qty * livePrice;
+  $('tradePrice').textContent = '$' + livePrice.toFixed(2);
+  $('tradeShares').textContent = qty;
+  $('tradeTotal').textContent = stbMoney(total);
+}
+
+$('tradeContinue').addEventListener('click', () => {
+  const qty = Math.max(1, Math.floor(Number($('tradeQty').value || 1)));
+  const total = qty * livePrice;
+  const alert = $('tradeAlert');
+  alert.className = 'form-alert';
+
+  if (tradeSide === 'buy') {
+    const accId = $('tradeAccount').value;
+    const acc = myAccounts.find(a => a.id === accId);
+    if (!acc) { alert.textContent = 'Select a source account.'; alert.className = 'form-alert show error'; return; }
+    if (Number(acc.balance) < total) {
+      alert.textContent = `Insufficient funds. You need ${stbMoney(total)}.`;
+      alert.className = 'form-alert show error'; return;
+    }
+    pendingTrade = { side: 'buy', qty, price: livePrice, total, accountId: accId, accountName: acc.ownerName, accountNumber: acc.accountNumber };
+  } else {
+    if (!thisHolding || thisHolding.shares < qty) {
+      alert.textContent = `You only own ${thisHolding ? thisHolding.shares : 0} shares.`;
+      alert.className = 'form-alert show error'; return;
+    }
+    pendingTrade = { side: 'sell', qty, price: livePrice, total };
+  }
+
+  closeTrade();
+  openPin();
+});
+
+// ============ PIN MODAL ============
+function openPin() {
+  enteredPin = '';
+  updatePinDots();
+  $('pinModal').classList.add('show');
+  document.body.style.overflow = 'hidden';
+}
+function closePin() {
+  $('pinModal').classList.remove('show');
+  document.body.style.overflow = '';
+}
+$('pinClose').addEventListener('click', closePin);
+$('pinModal').addEventListener('click', e => { if (e.target.id === 'pinModal') closePin(); });
+
+document.querySelectorAll('.keypad-key[data-key]').forEach(k => {
+  k.addEventListener('click', () => {
+    const key = k.dataset.key;
+    if (key === 'del') enteredPin = enteredPin.slice(0, -1);
+    else if (enteredPin.length < 4) enteredPin += key;
+    updatePinDots();
+    if (enteredPin.length === 4) setTimeout(confirmTrade, 220);
+  });
+});
+
+function updatePinDots() {
+  document.querySelectorAll('.pin-dot').forEach((d, i) => d.classList.toggle('filled', i < enteredPin.length));
+}
+
+async function confirmTrade() {
+  if (stbHashPin(enteredPin) !== userProfile.pinHash) {
+    enteredPin = '';
+    updatePinDots();
+    stbToast('Incorrect PIN.', 'error');
+    return;
+  }
+
+  closePin();
+  stbToast('Processing…');
+
+  try {
+    const reference = stbGenReference();
+
+    await db.runTransaction(async (tx) => {
+      // ============================================================
+      // PHASE 1 — READS ONLY (must all happen before any writes)
+      // ============================================================
+
+      let accRef, accSnap;               // source/dest account
+      let holdingRef, holdingSnap;       // existing holding (if any)
+
+      if (pendingTrade.side === 'buy') {
+        // Read source account
+        accRef = db.collection('swifttrust_accounts').doc(pendingTrade.accountId);
+        accSnap = await tx.get(accRef);
+        if (!accSnap.exists) throw new Error('Account not found.');
+        if (Number(accSnap.data().balance) < pendingTrade.total) throw new Error('Insufficient funds.');
+
+        // Read existing holding
+        const q = await db.collection('swifttrust_holdings')
+          .where('ownerId', '==', currentUid)
+          .where('symbol', '==', urlSymbol).limit(1).get();
+
+        if (!q.empty) {
+          holdingRef = db.collection('swifttrust_holdings').doc(q.docs[0].id);
+          holdingSnap = await tx.get(holdingRef);
+        }
+      } else {
+        // SELL — read holding
+        holdingRef = db.collection('swifttrust_holdings').doc(thisHolding.id);
+        holdingSnap = await tx.get(holdingRef);
+        if (!holdingSnap.exists) throw new Error('Holding not found.');
+        if (holdingSnap.data().shares < pendingTrade.qty) throw new Error('Not enough shares.');
+
+        // SELL — read destination checking account
+        const checkings = myAccounts.filter(a => a.type === 'checking');
+        const target = checkings[0] || myAccounts[0];
+        if (!target) throw new Error('No account to receive funds.');
+        accRef = db.collection('swifttrust_accounts').doc(target.id);
+        accSnap = await tx.get(accRef);
+        if (!accSnap.exists) throw new Error('Destination account not found.');
+      }
+
+      // ============================================================
+      // PHASE 2 — WRITES ONLY
+      // ============================================================
+
+      if (pendingTrade.side === 'buy') {
+        // Debit buyer
+        tx.update(accRef, { balance: Number(accSnap.data().balance) - pendingTrade.total });
+
+        if (holdingRef && holdingSnap && holdingSnap.exists) {
+          const h = holdingSnap.data();
+          const newShares = h.shares + pendingTrade.qty;
+          const newAvg = ((h.shares * h.avgPrice) + (pendingTrade.qty * pendingTrade.price)) / newShares;
+          tx.update(holdingRef, {
+            shares: newShares,
+            avgPrice: newAvg,
+            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+          });
+        } else {
+          const newRef = db.collection('swifttrust_holdings').doc();
+          tx.set(newRef, {
+            ownerId: currentUid,
+            symbol: urlSymbol,
+            name: STOCK_MASTER[urlSymbol].name,
+            shares: pendingTrade.qty,
+            avgPrice: pendingTrade.price,
+            createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+          });
+        }
+      } else {
+        // SELL — reduce or delete holding
+        const h = holdingSnap.data();
+        const remaining = h.shares - pendingTrade.qty;
+        if (remaining === 0) {
+          tx.delete(holdingRef);
+        } else {
+          tx.update(holdingRef, {
+            shares: remaining,
+            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+          });
+        }
+
+        // SELL — credit account
+        tx.update(accRef, { balance: Number(accSnap.data().balance) + pendingTrade.total });
+      }
+
+      // Transaction log (write)
+      tx.set(db.collection('swifttrust_transactions').doc(), {
+        reference,
+        type: pendingTrade.side === 'buy' ? 'stock_buy' : 'stock_sell',
+        fromUid: pendingTrade.side === 'buy' ? currentUid : null,
+        toUid: pendingTrade.side === 'buy' ? null : currentUid,
+        fromAccountId: pendingTrade.side === 'buy' ? pendingTrade.accountId : null,
+        fromAccountNumber: pendingTrade.side === 'buy' ? pendingTrade.accountNumber : null,
+        fromAccountName: pendingTrade.side === 'buy' ? pendingTrade.accountName : 'SwiftTrust Markets',
+        toAccountId: pendingTrade.side === 'sell' ? (myAccounts.find(a => a.type === 'checking') || myAccounts[0])?.id : null,
+        toAccountNumber: pendingTrade.side === 'sell' ? (myAccounts.find(a => a.type === 'checking') || myAccounts[0])?.accountNumber : null,
+        toAccountName: pendingTrade.side === 'sell' ? (userProfile.fullName || 'You') : 'SwiftTrust Markets',
+        amount: pendingTrade.total,
+        fee: 0,
+        total: pendingTrade.total,
+        description: `${pendingTrade.side === 'buy' ? 'Bought' : 'Sold'} ${pendingTrade.qty} ${urlSymbol} @ $${pendingTrade.price.toFixed(2)}`,
+        status: 'completed',
+        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+      });
+    });
+
+    $('successTitle').textContent = pendingTrade.side === 'buy' ? 'Shares purchased' : 'Shares sold';
+    $('successSub').textContent = `${pendingTrade.qty} × ${urlSymbol} @ $${pendingTrade.price.toFixed(2)}`;
+    $('successAmount').textContent = stbMoney(pendingTrade.total);
+    $('successRef').textContent = reference;
+    $('successOverlay').classList.add('show');
+    fireConfetti();
+
+    setTimeout(loadHolding, 400);
+  } catch (err) {
+    console.error(err);
+    stbToast(err.message || 'Trade failed.', 'error');
+  }
+}
+
+function fireConfetti() {
+  const colors = ['#2563eb', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'];
+  for (let i = 0; i < 40; i++) {
+    const piece = document.createElement('div');
+    piece.className = 'confetti-piece';
+    piece.style.left = Math.random() * 100 + 'vw';
+    piece.style.background = colors[Math.floor(Math.random() * colors.length)];
+    piece.style.animationDuration = (1.5 + Math.random() * 1.5) + 's';
+    piece.style.animationDelay = (Math.random() * 0.4) + 's';
+    document.body.appendChild(piece);
+    setTimeout(() => piece.remove(), 3500);
+  }
+}
+</script>
+</body>
+</html>

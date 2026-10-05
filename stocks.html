@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<title>Stocks — SwiftTrust Bank</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<link rel="stylesheet" href="style.css">
+<style>
+  .stock-tabs { display: flex; gap: 6px; padding: 0 18px; margin-bottom: 14px; }
+  .stock-tab {
+    flex: 1; padding: 10px 8px; text-align: center;
+    background: var(--panel); border: 1px solid var(--line);
+    border-radius: 12px; font-size: .82rem; font-weight: 600;
+    color: var(--text-dim); cursor: pointer; font-family: inherit;
+    transition: .15s;
+  }
+  .stock-tab.active { background: var(--blue); color: #fff; border-color: var(--blue); }
+  .stock-row {
+    display: flex; align-items: center; gap: 14px;
+    padding: 14px 18px; border-bottom: 1px solid var(--line);
+    cursor: pointer; text-decoration: none; color: inherit;
+    transition: background .12s;
+  }
+  .stock-row:hover { background: #fafcfe; text-decoration: none; }
+  .stock-row:last-child { border-bottom: none; }
+  .stock-logo {
+    width: 42px; height: 42px; border-radius: 12px;
+    background: linear-gradient(135deg, var(--navy), var(--blue));
+    color: #fff; display: grid; place-items: center;
+    font-weight: 700; font-size: .85rem; flex-shrink: 0;
+  }
+  .stock-name { font-weight: 700; font-size: .92rem; color: var(--ink); }
+  .stock-ticker { font-size: .72rem; color: var(--text-faint); margin-top: 1px; }
+  .stock-price { margin-left: auto; text-align: right; }
+  .stock-price-val {
+    font-weight: 700; font-size: .92rem; color: var(--ink);
+    font-family: 'SF Mono', ui-monospace, monospace;
+  }
+  .stock-price-chg { font-size: .72rem; font-weight: 600; }
+  .up { color: var(--green); }
+  .down { color: var(--red); }
+  .watch-star {
+    background: none; border: none;
+    color: var(--line-2); font-size: 1rem; padding: 4px;
+    transition: color .15s, transform .12s;
+  }
+  .watch-star.on { color: #f59e0b; }
+  .watch-star:active { transform: scale(.85); }
+</style>
+</head>
+<body>
+
+<div class="mob-shell">
+
+  <header class="mob-header">
+    <div class="mob-header-inner">
+      <div class="mob-header-left">
+        <button class="mob-menu-btn" id="menuBtn"><i class="fas fa-bars"></i></button>
+        <h1 style="font-size:1.05rem;">Stocks</h1>
+      </div>
+      <div class="mob-header-right">
+        <a href="stocks.html" class="mob-icon-btn"><i class="fas fa-magnifying-glass"></i></a>
+      </div>
+    </div>
+  </header>
+
+  <div class="stock-tabs">
+    <button class="stock-tab active" data-tab="market">Market</button>
+    <button class="stock-tab" data-tab="portfolio">Portfolio</button>
+    <button class="stock-tab" data-tab="watchlist">Watchlist</button>
+  </div>
+
+  <div class="mob-pad">
+    <div class="card" style="padding:0;overflow:hidden;margin-bottom:24px;">
+      <div id="stockList">
+        <div class="empty-state"><i class="fas fa-circle-notch fa-spin"></i><p>Loading…</p></div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<nav class="bottom-nav">
+  <a href="dashboard.html" class="bottom-nav-item">
+    <i class="fas fa-house"></i><span>Home</span>
+  </a>
+  <a href="history.html" class="bottom-nav-item">
+    <i class="fas fa-clock-rotate-left"></i><span>History</span>
+  </a>
+  <a href="#" id="bottomNavMenu" class="bottom-nav-item">
+    <i class="fas fa-bars"></i><span>Menu</span>
+  </a>
+  <a href="stocks.html" class="bottom-nav-item active">
+    <i class="fas fa-chart-line"></i><span>Stocks</span>
+  </a>
+  <a href="profile.html" class="bottom-nav-item">
+    <i class="fas fa-user"></i><span>Profile</span>
+  </a>
+</nav>
+
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore-compat.js"></script>
+<script src="firebase-config.js"></script>
+<script src="drawer.js"></script>
+
+<script>
+// ============== Stock master list ==============
+const STOCKS = [
+  { symbol: 'AAPL',  name: 'Apple Inc.',              price: 189.42 },
+  { symbol: 'MSFT',  name: 'Microsoft Corp.',         price: 421.88 },
+  { symbol: 'GOOGL', name: 'Alphabet Inc.',           price: 172.15 },
+  { symbol: 'AMZN',  name: 'Amazon.com Inc.',         price: 198.35 },
+  { symbol: 'NVDA',  name: 'NVIDIA Corp.',            price: 138.22 },
+  { symbol: 'TSLA',  name: 'Tesla Inc.',              price: 249.10 },
+  { symbol: 'META',  name: 'Meta Platforms',          price: 585.40 },
+  { symbol: 'NFLX',  name: 'Netflix Inc.',            price: 812.55 },
+  { symbol: 'AMD',   name: 'Advanced Micro Devices',  price: 158.70 },
+  { symbol: 'JPM',   name: 'JPMorgan Chase',          price: 218.30 },
+  { symbol: 'V',     name: 'Visa Inc.',               price: 302.65 },
+  { symbol: 'JNJ',   name: 'Johnson & Johnson',       price: 152.90 },
+  { symbol: 'WMT',   name: 'Walmart Inc.',            price: 82.45 },
+  { symbol: 'DIS',   name: 'Walt Disney Co.',         price: 96.20 },
+  { symbol: 'KO',    name: 'Coca-Cola Co.',           price: 63.15 },
+  { symbol: 'PEP',   name: 'PepsiCo Inc.',            price: 168.40 },
+  { symbol: 'BAC',   name: 'Bank of America',         price: 42.85 },
+  { symbol: 'XOM',   name: 'Exxon Mobil',             price: 112.30 },
+  { symbol: 'PFE',   name: 'Pfizer Inc.',             price: 26.50 },
+  { symbol: 'INTC',  name: 'Intel Corp.',             price: 22.80 }
+];
+
+let livePrices = {};
+let overrides = {};   // admin overrides from swifttrust_market
+
+function basePrice(sym) {
+  return overrides[sym] != null ? overrides[sym] : (STOCKS.find(s => s.symbol === sym)?.price || 0);
+}
+
+STOCKS.forEach(s => {
+  livePrices[s.symbol] = { price: s.price, prev: s.price, change: 0 };
+});
+
+// ============== Admin price overrides ==============
+db.collection('swifttrust_market').onSnapshot(snap => {
+  // Reset overrides
+  Object.keys(overrides).forEach(k => delete overrides[k]);
+  snap.forEach(d => { overrides[d.id] = Number(d.data().price); });
+
+  // Immediately apply overrides to live prices
+  STOCKS.forEach(s => {
+    const base = basePrice(s.symbol);
+    livePrices[s.symbol].price = base;
+    livePrices[s.symbol].change = 0;
+  });
+
+  if (activeTab) renderList();
+}, err => console.error('market overrides', err));
+
+// ============== Jitter every 4s ==============
+setInterval(() => {
+  STOCKS.forEach(s => {
+    const base = basePrice(s.symbol);
+    const cur = livePrices[s.symbol].price;
+    const delta = cur * (Math.random() * 0.003 - 0.0015); // ±0.15%
+    const next = Math.max(0.01, cur + delta);
+    livePrices[s.symbol].prev = cur;
+    livePrices[s.symbol].price = next;
+    livePrices[s.symbol].change = ((next - base) / base) * 100;
+  });
+  if (activeTab) renderList();
+}, 4000);
+
+// ============== State ==============
+let currentUid = null;
+let userProfile = null;
+let activeTab = 'market';
+let holdings = [];
+let watchlist = [];
+let unsubHoldings;
+
+auth.onAuthStateChanged(async (user) => {
+  if (!user) { window.location.href = 'login.html'; return; }
+  const snap = await db.collection('swifttrust_users').doc(user.uid).get();
+  if (!snap.exists) { await auth.signOut(); window.location.href = 'login.html'; return; }
+  const data = snap.data();
+  if (data.status !== 'approved') { await auth.signOut(); window.location.href = 'login.html'; return; }
+  currentUid = user.uid;
+  userProfile = data;
+  watchlist = data.watchlist || [];
+
+  if (unsubHoldings) unsubHoldings();
+  unsubHoldings = db.collection('swifttrust_holdings')
+    .where('ownerId', '==', currentUid)
+    .onSnapshot(snap => {
+      holdings = [];
+      snap.forEach(d => holdings.push({ id: d.id, ...d.data() }));
+      if (activeTab === 'portfolio') renderList();
+    });
+
+  renderList();
+});
+
+document.querySelectorAll('.stock-tab').forEach(t => {
+  t.addEventListener('click', () => {
+    document.querySelectorAll('.stock-tab').forEach(x => x.classList.remove('active'));
+    t.classList.add('active');
+    activeTab = t.dataset.tab;
+    renderList();
+  });
+});
+
+function renderList() {
+  const el = document.getElementById('stockList');
+  if (!el) return;
+  if (activeTab === 'market') return renderMarket(el);
+  if (activeTab === 'watchlist') return renderWatchlist(el);
+  if (activeTab === 'portfolio') return renderPortfolio(el);
+}
+
+function rowHTML(s) {
+  const p = livePrices[s.symbol];
+  const chg = p.change || 0;
+  const cls = chg >= 0 ? 'up' : 'down';
+  const sign = chg >= 0 ? '+' : '';
+  const starred = watchlist.includes(s.symbol);
+  return `
+    <div class="stock-row" data-symbol="${s.symbol}">
+      <div class="stock-logo">${s.symbol.slice(0, 2)}</div>
+      <div>
+        <div class="stock-name">${s.name}</div>
+        <div class="stock-ticker">${s.symbol}</div>
+      </div>
+      <div class="stock-price">
+        <div class="stock-price-val">$${p.price.toFixed(2)}</div>
+        <div class="stock-price-chg ${cls}">${sign}${chg.toFixed(2)}%</div>
+      </div>
+      <button class="watch-star ${starred ? 'on' : ''}" data-star="${s.symbol}" title="Watchlist">
+        <i class="fa${starred ? 's' : 'r'} fa-star"></i>
+      </button>
+    </div>
+  `;
+}
+
+function renderMarket(el) {
+  el.innerHTML = STOCKS.map(s => rowHTML(s)).join('');
+  wireRows(el);
+}
+
+function renderWatchlist(el) {
+  const list = STOCKS.filter(s => watchlist.includes(s.symbol));
+  if (list.length === 0) {
+    el.innerHTML = `<div class="empty-state"><i class="fas fa-star"></i><p>No stocks in your watchlist yet. Tap a star to add one.</p></div>`;
+    return;
+  }
+  el.innerHTML = list.map(s => rowHTML(s)).join('');
+  wireRows(el);
+}
+
+function renderPortfolio(el) {
+  if (holdings.length === 0) {
+    el.innerHTML = `<div class="empty-state"><i class="fas fa-briefcase"></i><p>You don't own any stocks yet. Buy your first from the Market tab.</p></div>`;
+    return;
+  }
+  let total = 0, cost = 0;
+  const rows = holdings.map(h => {
+    const live = livePrices[h.symbol] ? livePrices[h.symbol].price : h.avgPrice;
+    const value = live * h.shares;
+    const spent = h.avgPrice * h.shares;
+    total += value; cost += spent;
+    return { h, value, spent };
+  });
+  const gain = total - cost;
+  const gainPct = cost > 0 ? (gain / cost) * 100 : 0;
+
+  el.innerHTML = `
+    <div style="padding:20px;background:linear-gradient(135deg,var(--navy),var(--blue));color:#fff;">
+      <div style="font-size:.72rem;color:#a8c1e6;text-transform:uppercase;letter-spacing:.08em;font-weight:600;">Portfolio Value</div>
+      <div style="font-size:1.9rem;font-weight:700;margin-top:6px;letter-spacing:-.02em;">${stbMoney(total)}</div>
+      <div style="font-size:.85rem;margin-top:6px;color:${gain >= 0 ? '#86efac' : '#fca5a5'};">
+        ${gain >= 0 ? '+' : ''}${stbMoney(gain)} (${gain >= 0 ? '+' : ''}${gainPct.toFixed(2)}%)
+      </div>
+    </div>
+    ${rows.map(({ h, value, spent }) => {
+      const pct = spent > 0 ? ((value - spent) / spent) * 100 : 0;
+      const cls = pct >= 0 ? 'up' : 'down';
+      const sign = pct >= 0 ? '+' : '';
+      return `
+        <div class="stock-row" data-symbol="${h.symbol}">
+          <div class="stock-logo">${h.symbol.slice(0, 2)}</div>
+          <div>
+            <div class="stock-name">${h.symbol}</div>
+            <div class="stock-ticker">${h.shares} share${h.shares === 1 ? '' : 's'} · avg $${h.avgPrice.toFixed(2)}</div>
+          </div>
+          <div class="stock-price">
+            <div class="stock-price-val">${stbMoney(value)}</div>
+            <div class="stock-price-chg ${cls}">${sign}${pct.toFixed(2)}%</div>
+          </div>
+        </div>`;
+    }).join('')}
+  `;
+  wireRows(el);
+}
+
+function wireRows(el) {
+  el.querySelectorAll('.stock-row').forEach(row => {
+    row.addEventListener('click', (e) => {
+      if (e.target.closest('.watch-star')) return;
+      window.location.href = 'stock-detail.html?symbol=' + row.dataset.symbol;
+    });
+  });
+  el.querySelectorAll('.watch-star').forEach(btn => {
+    btn.addEventListener('click', async (e) => {
+      e.stopPropagation();
+      const sym = btn.dataset.star;
+      const idx = watchlist.indexOf(sym);
+      if (idx === -1) watchlist.push(sym); else watchlist.splice(idx, 1);
+      btn.classList.toggle('on');
+      btn.querySelector('i').className = watchlist.includes(sym) ? 'fas fa-star' : 'far fa-star';
+      try {
+        await db.collection('swifttrust_users').doc(currentUid).update({ watchlist });
+      } catch (err) { console.error(err); }
+      if (activeTab === 'watchlist') renderList();
+    });
+  });
+}
+</script>
+</body>
+</html>

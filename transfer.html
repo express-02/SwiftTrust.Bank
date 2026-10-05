@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Transfer — SwiftTrust Bank</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<link rel="stylesheet" href="style.css">
+<style>
+  .transfer-wrap { max-width: 640px; margin: 0 auto; }
+  .recipient-type { display:flex; gap:8px; margin-bottom:18px; }
+  .recipient-type label {
+    flex:1; cursor:pointer; border:1px solid var(--line-2); border-radius:10px;
+    padding:14px; text-align:center; font-size:.88rem; font-weight:600; color:var(--text-dim);
+    transition:.15s;
+  }
+  .recipient-type input { display:none; }
+  .recipient-type input:checked + label {
+    border-color: var(--blue); background: var(--blue-soft); color: var(--blue);
+  }
+  .fee-box {
+    background: var(--bg); border:1px solid var(--line); border-radius:12px;
+    padding:16px; margin:18px 0;
+  }
+  .fee-row { display:flex; justify-content:space-between; font-size:.88rem; padding:6px 0; }
+  .fee-row.total { border-top:1px solid var(--line); margin-top:6px; padding-top:12px; font-weight:700; color:var(--ink); }
+  .fee-row .label { color: var(--text-dim); }
+</style>
+</head>
+<body>
+
+<div class="app-shell">
+
+  <header class="app-topbar">
+    <div class="app-topbar-inner">
+      <a href="dashboard.html" class="brand">
+        <div class="brand-mark"><i class="fas fa-shield-halved"></i></div>
+        Swift<span>Trust</span>
+      </a>
+      <nav class="app-nav">
+        <a href="dashboard.html"><i class="fas fa-house"></i> Dashboard</a>
+        <a href="transfer.html" class="active"><i class="fas fa-paper-plane"></i> Transfer</a>
+      </nav>
+      <div style="display:flex;gap:10px;align-items:center;">
+        <div class="user-chip">
+          <div class="avatar" id="userInitials">—</div>
+          <span id="userNameChip">Loading…</span>
+        </div>
+        <button class="btn btn-outline" id="signOutBtn"><i class="fas fa-arrow-right-from-bracket"></i></button>
+      </div>
+    </div>
+  </header>
+
+  <main class="app-main">
+    <div class="transfer-wrap">
+
+      <div class="page-head">
+        <div>
+          <h1>Send money</h1>
+          <p>Transfers are processed instantly.</p>
+        </div>
+        <a href="dashboard.html" class="btn btn-ghost"><i class="fas fa-arrow-left"></i> Back</a>
+      </div>
+
+      <form class="card" id="transferForm">
+        <div class="form-alert" id="alert"></div>
+
+        <div class="field">
+          <label>From account</label>
+          <select id="fromAccount" required>
+            <option value="">Select account</option>
+          </select>
+        </div>
+
+        <label style="display:block;font-size:.82rem;font-weight:600;margin-bottom:8px;">Transfer to</label>
+        <div class="recipient-type">
+          <input type="radio" name="rType" id="rInternal" value="internal" checked />
+          <label for="rInternal"><i class="fas fa-building-columns"></i> SwiftTrust account</label>
+
+          <input type="radio" name="rType" id="rExternal" value="external" />
+          <label for="rExternal"><i class="fas fa-globe"></i> External bank</label>
+        </div>
+
+        <!-- Internal fields -->
+        <div id="internalFields">
+          <div class="field">
+            <label>Recipient account number</label>
+            <input type="text" id="toAccountNumber" placeholder="10-digit account number" maxlength="10" inputmode="numeric" />
+            <div class="field-hint" id="recipientHint">Enter the recipient's 10-digit SwiftTrust account number.</div>
+          </div>
+        </div>
+
+        <!-- External fields -->
+        <div id="externalFields" style="display:none;">
+          <div class="field">
+            <label>Recipient bank</label>
+            <select id="toBank">
+              <option value="">Select bank</option>
+              <option>Bank of America</option>
+              <option>Capital One</option>
+              <option>Chase</option>
+              <option>Citibank</option>
+              <option>Discover</option>
+              <option>Fifth Third Bank</option>
+              <option>Navy Federal Credit Union</option>
+              <option>PNC Bank</option>
+              <option>TD Bank</option>
+              <option>Truist</option>
+              <option>U.S. Bank</option>
+              <option>USAA</option>
+              <option>Wells Fargo</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Recipient account number</label>
+            <input type="text" id="toExternalAccount" placeholder="Account number" inputmode="numeric" />
+          </div>
+          <div class="field">
+            <label>Recipient name</label>
+            <input type="text" id="toExternalName" placeholder="Full name on account" />
+          </div>
+        </div>
+
+        <div class="field">
+          <label>Amount (USD)</label>
+          <input type="number" id="amount" placeholder="0.00" min="1" step="0.01" required />
+        </div>
+
+        <div class="field">
+          <label>Description <span style="color:var(--text-faint);font-weight:400;">(optional)</span></label>
+          <input type="text" id="description" placeholder="What's this for?" maxlength="80" />
+        </div>
+
+        <div class="fee-box" id="feeBox">
+          <div class="fee-row"><span class="label">Amount</span><span id="feeAmount">$0.00</span></div>
+          <div class="fee-row"><span class="label">Transfer fee (3%)</span><span id="feeFee">$0.00</span></div>
+          <div class="fee-row total"><span>Total debited</span><span id="feeTotal">$0.00</span></div>
+        </div>
+
+        <div class="field-row">
+          <div class="field">
+            <label>Transaction PIN</label>
+            <input type="password" id="pin" placeholder="••••" maxlength="4" inputmode="numeric" required />
+          </div>
+          <div class="field">
+            <label>Transfer code</label>
+            <input type="text" id="code" placeholder="Issued by the bank" style="text-transform:uppercase;" required />
+          </div>
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-block btn-lg" id="submitBtn">
+          <i class="fas fa-paper-plane"></i> Send transfer
+        </button>
+
+        <p style="text-align:center;font-size:.75rem;color:var(--text-faint);margin-top:14px;">
+          Transfers require a valid transaction PIN and a bank-issued transfer code.
+        </p>
+      </form>
+
+    </div>
+  </main>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore-compat.js"></script>
+<script src="firebase-config.js"></script>
+
+<script>
+const FEE_RATE = 0.03;
+
+let currentUid = null;
+let userProfile = null;
+let myAccounts = [];
+
+const $ = id => document.getElementById(id);
+const alertEl = $('alert');
+
+function showAlert(msg, type) {
+  alertEl.textContent = msg;
+  alertEl.className = 'form-alert show ' + (type || 'error');
+}
+function clearAlert() { alertEl.className = 'form-alert'; }
+
+$('signOutBtn').addEventListener('click', async () => {
+  await auth.signOut();
+  window.location.href = 'login.html';
+});
+
+auth.onAuthStateChanged(async (user) => {
+  if (!user) { window.location.href = 'login.html'; return; }
+  const snap = await db.collection('swifttrust_users').doc(user.uid).get();
+  if (!snap.exists) { await auth.signOut(); window.location.href = 'login.html'; return; }
+  const data = snap.data();
+  if (data.status !== 'approved') { await auth.signOut(); window.location.href = 'login.html'; return; }
+
+  currentUid = user.uid;
+  userProfile = data;
+
+  const initials = (data.fullName || '?').split(' ').map(s => s[0]).slice(0, 2).join('').toUpperCase();
+  $('userInitials').textContent = initials;
+  $('userNameChip').textContent = (data.fullName || '').split(' ')[0] || 'Account';
+
+  // Load user's accounts
+  const accSnap = await db.collection('swifttrust_accounts').where('ownerId', '==', user.uid).get();
+  myAccounts = [];
+  accSnap.forEach(d => myAccounts.push({ id: d.id, ...d.data() }));
+
+  const sel = $('fromAccount');
+  sel.innerHTML = '<option value="">Select account</option>' +
+    myAccounts.map(a =>
+      `<option value="${a.id}">${a.nickname || a.type} — ••••${String(a.accountNumber).slice(-4)} (${stbMoney(a.balance)})</option>`
+    ).join('');
+});
+
+// Recipient type toggle
+document.querySelectorAll('input[name="rType"]').forEach(radio => {
+  radio.addEventListener('change', () => {
+    const isInternal = $('rInternal').checked;
+    $('internalFields').style.display = isInternal ? 'block' : 'none';
+    $('externalFields').style.display = isInternal ? 'none' : 'block';
+  });
+});
+
+// Live fee calculation
+$('amount').addEventListener('input', updateFee);
+function updateFee() {
+  const amt = Number($('amount').value || 0);
+  const fee = amt * FEE_RATE;
+  $('feeAmount').textContent = stbMoney(amt);
+  $('feeFee').textContent = stbMoney(fee);
+  $('feeTotal').textContent = stbMoney(amt + fee);
+}
+
+// Submit
+$('transferForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  clearAlert();
+
+  const fromAccountId = $('fromAccount').value;
+  const type = $('rInternal').checked ? 'internal' : 'external';
+  const amount = Number($('amount').value || 0);
+  const description = $('description').value.trim();
+  const pin = $('pin').value.trim();
+  const code = $('code').value.trim().toUpperCase();
+
+  // Basic validation
+  if (!fromAccountId) return showAlert('Please select a source account.');
+  if (amount <= 0) return showAlert('Enter an amount greater than zero.');
+  if (!/^\d{4}$/.test(pin)) return showAlert('Transaction PIN must be 4 digits.');
+  if (!code) return showAlert('Enter your transfer code.');
+
+  const fromAccount = myAccounts.find(a => a.id === fromAccountId);
+  if (!fromAccount) return showAlert('Source account not found.');
+
+  const fee = amount * FEE_RATE;
+  const total = amount + fee;
+
+  if (Number(fromAccount.balance || 0) < total) {
+    return showAlert(`Insufficient funds. You need ${stbMoney(total)} including the fee.`);
+  }
+
+  // Verify PIN
+  if (stbHashPin(pin) !== userProfile.pinHash) {
+    return showAlert('Incorrect transaction PIN.');
+  }
+
+  // Resolve recipient
+  let toAccountId = null;
+  let toUid = null;
+  let toAccountNumber = '';
+  let toAccountName = '';
+  let toBank = '';
+
+  if (type === 'internal') {
+    const accNum = $('toAccountNumber').value.trim();
+    if (!/^\d{10}$/.test(accNum)) return showAlert('Enter a valid 10-digit account number.');
+
+    const q = await db.collection('swifttrust_accounts').where('accountNumber', '==', accNum).limit(1).get();
+    if (q.empty) return showAlert('No SwiftTrust account found with that number.');
+
+    const doc = q.docs[0];
+    const acc = doc.data();
+    if (doc.id === fromAccount.id) return showAlert('You cannot transfer to the same account.');
+
+    toAccountId = doc.id;
+    toUid = acc.ownerId;
+    toAccountNumber = acc.accountNumber;
+    toAccountName = acc.ownerName || 'SwiftTrust customer';
+  } else {
+    const bank = $('toBank').value;
+    const extAcc = $('toExternalAccount').value.trim();
+    const extName = $('toExternalName').value.trim();
+    if (!bank) return showAlert('Select the recipient bank.');
+    if (!extAcc) return showAlert('Enter the recipient account number.');
+    if (!extName) return showAlert('Enter the recipient name.');
+
+    toAccountNumber = extAcc;
+    toAccountName = extName;
+    toBank = bank;
+  }
+
+  $('submitBtn').disabled = true;
+  $('submitBtn').innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Processing transfer…';
+
+  try {
+    const reference = stbGenReference();
+    const feeAccountId = 'STB_REVENUE';
+
+    await db.runTransaction(async (tx) => {
+      // Re-read source account inside transaction
+      const fromRef = db.collection('swifttrust_accounts').doc(fromAccountId);
+      const fromSnap = await tx.get(fromRef);
+      if (!fromSnap.exists) throw new Error('Source account not found.');
+      const fromData = fromSnap.data();
+
+      if (Number(fromData.balance) < total) throw new Error('Insufficient funds.');
+
+      // Verify code inside transaction
+      const codeRef = db.collection('swifttrust_codes').doc(code);
+      const cSnap = await tx.get(codeRef);
+      if (!cSnap.exists) throw new Error('Invalid transfer code.');
+      const cData = cSnap.data();
+      if (cData.used) throw new Error('This transfer code has already been used.');
+      if (cData.expiresAt && cData.expiresAt.toDate && cData.expiresAt.toDate() < new Date()) {
+        throw new Error('This transfer code has expired.');
+      }
+      if (cData.amountLimit && amount > Number(cData.amountLimit)) {
+        throw new Error(`This code is limited to ${stbMoney(cData.amountLimit)} per transfer.`);
+      }
+
+      // Read recipient if internal
+      let toRef = null;
+      let toData = null;
+      if (type === 'internal') {
+        toRef = db.collection('swifttrust_accounts').doc(toAccountId);
+        const toSnap = await tx.get(toRef);
+        if (!toSnap.exists) throw new Error('Recipient account not found.');
+        toData = toSnap.data();
+      }
+
+      // Debit sender
+      tx.update(fromRef, { balance: Number(fromData.balance) - total });
+
+      // Credit recipient if internal
+      if (type === 'internal') {
+        tx.update(toRef, { balance: Number(toData.balance) + amount });
+      }
+
+      // Mark code used
+      tx.update(codeRef, {
+        used: true,
+        usedAt: firebase.firestore.FieldValue.serverTimestamp(),
+        usedBy: currentUid
+      });
+
+      // Record the transfer
+      const txRef = db.collection('swifttrust_transactions').doc();
+      tx.set(txRef, {
+        reference,
+        type,
+        fromUid: currentUid,
+        fromAccountId,
+        fromAccountNumber: fromData.accountNumber,
+        fromAccountName: fromData.ownerName,
+        toUid: toUid,
+        toAccountId: toAccountId,
+        toAccountNumber,
+        toAccountName,
+        toBank: toBank || null,
+        amount,
+        fee,
+        total,
+        description: description || null,
+        codeUsed: code,
+        status: 'completed',
+        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+      });
+
+      // Fee entry (bank revenue)
+      const feeRef = db.collection('swifttrust_transactions').doc();
+      tx.set(feeRef, {
+        reference: reference + '-FEE',
+        type: 'fee',
+        fromUid: currentUid,
+        fromAccountId,
+        fromAccountNumber: fromData.accountNumber,
+        fromAccountName: fromData.ownerName,
+        toAccountNumber: feeAccountId,
+        toAccountName: 'SwiftTrust Bank',
+        amount: fee,
+        fee: 0,
+        total: fee,
+        description: 'Transfer fee (3%)',
+        status: 'completed',
+        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+      });
+    });
+
+    showAlert(`Transfer sent. Reference ${reference}`, 'success');
+    setTimeout(() => { window.location.href = 'dashboard.html'; }, 1800);
+
+  } catch (err) {
+    console.error(err);
+    showAlert(err.message || 'Transfer failed. Please try again.');
+    $('submitBtn').disabled = false;
+    $('submitBtn').innerHTML = '<i class="fas fa-paper-plane"></i> Send transfer';
+  }
+});
+</script>
+</body>
+</html>

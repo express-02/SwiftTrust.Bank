@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<title>Move Money — SwiftTrust Bank</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<link rel="stylesheet" href="style.css">
+<style>
+  .move-swap {
+    display: flex; justify-content: center; margin: -6px 0 -6px;
+    position: relative; z-index: 2;
+  }
+  .swap-btn {
+    width: 44px; height: 44px; border-radius: 50%;
+    background: var(--blue); color: #fff; border: 4px solid var(--panel);
+    display: grid; place-items: center; font-size: .95rem;
+    cursor: pointer; box-shadow: var(--shadow);
+    transition: transform .2s, background .15s;
+  }
+  .swap-btn:hover { background: var(--blue-hover); }
+  .swap-btn:active { transform: scale(.9) rotate(180deg); }
+
+  .move-preview {
+    background: var(--bg); border: 1px solid var(--line);
+    border-radius: 12px; padding: 14px; margin: 14px 0;
+  }
+  .move-preview-row {
+    display: flex; justify-content: space-between;
+    font-size: .88rem; padding: 5px 0;
+    color: var(--text-dim);
+  }
+  .move-preview-row strong { color: var(--ink); }
+  .move-preview-row.total {
+    border-top: 1px solid var(--line); margin-top: 6px; padding-top: 10px;
+    font-weight: 700; color: var(--ink); font-size: 1rem;
+  }
+</style>
+</head>
+<body>
+
+<div class="mob-shell">
+
+  <header class="mob-header">
+    <div class="mob-header-inner">
+      <div class="mob-header-left">
+        <button class="mob-menu-btn" id="menuBtn"><i class="fas fa-bars"></i></button>
+        <h1 style="font-size:1.05rem;">Move money</h1>
+      </div>
+      <div class="mob-header-right">
+        <a href="dashboard.html" class="mob-icon-btn" title="Home"><i class="fas fa-house"></i></a>
+      </div>
+    </div>
+  </header>
+
+  <div class="mob-pad" style="padding-top:18px;">
+
+    <div class="card" style="background:var(--blue-soft);border-color:var(--blue-line);padding:16px 18px;margin-bottom:16px;">
+      <div style="display:flex;gap:12px;align-items:flex-start;">
+        <i class="fas fa-circle-info" style="color:var(--blue);margin-top:3px;"></i>
+        <div>
+          <div style="font-weight:600;color:var(--blue);font-size:.88rem;">Move money between your accounts</div>
+          <div style="font-size:.8rem;color:var(--text-dim);margin-top:2px;">Instant. Free. Your transaction PIN is required.</div>
+        </div>
+      </div>
+    </div>
+
+    <form id="moveForm" class="card">
+      <div class="form-alert" id="alert"></div>
+
+      <div class="field">
+        <label>From</label>
+        <select id="fromAccount" required><option value="">Select account</option></select>
+      </div>
+
+      <div class="move-swap">
+        <button type="button" class="swap-btn" id="swapBtn" title="Swap direction">
+          <i class="fas fa-arrow-down-up-across-line"></i>
+        </button>
+      </div>
+
+      <div class="field">
+        <label>To</label>
+        <select id="toAccount" required><option value="">Select account</option></select>
+      </div>
+
+      <div class="field">
+        <label>Amount (USD)</label>
+        <input type="number" id="amount" placeholder="0.00" min="1" step="0.01" required />
+      </div>
+
+      <div class="move-preview" id="preview" style="display:none;">
+        <div class="move-preview-row">
+          <span>From</span><strong id="pvFrom">—</strong>
+        </div>
+        <div class="move-preview-row">
+          <span>To</span><strong id="pvTo">—</strong>
+        </div>
+        <div class="move-preview-row">
+          <span>New balance (from)</span><strong id="pvFromBal">—</strong>
+        </div>
+        <div class="move-preview-row">
+          <span>New balance (to)</span><strong id="pvToBal">—</strong>
+        </div>
+        <div class="move-preview-row total">
+          <span>Amount</span><span id="pvAmount">$0.00</span>
+        </div>
+      </div>
+
+      <button type="submit" class="btn btn-primary btn-block btn-lg" id="submitBtn">
+        Continue <i class="fas fa-arrow-right"></i>
+      </button>
+    </form>
+
+    <div class="card mt-3" style="background:var(--bg);border-color:var(--line);">
+      <div style="font-size:.78rem;color:var(--text-faint);line-height:1.6;">
+        <strong style="color:var(--text-dim);display:block;margin-bottom:6px;">Quick tip</strong>
+        Use High-Yield Savings to grow your balance at 4.5% APY. Move money back to checking any time you need it.
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<nav class="bottom-nav">
+  <a href="dashboard.html" class="bottom-nav-item"><i class="fas fa-house"></i><span>Home</span></a>
+  <a href="history.html" class="bottom-nav-item"><i class="fas fa-clock-rotate-left"></i><span>History</span></a>
+  <a href="#" id="bottomNavMenu" class="bottom-nav-item"><i class="fas fa-bars"></i><span>Menu</span></a>
+  <a href="stocks.html" class="bottom-nav-item"><i class="fas fa-chart-line"></i><span>Stocks</span></a>
+  <a href="profile.html" class="bottom-nav-item"><i class="fas fa-user"></i><span>Profile</span></a>
+</nav>
+
+<!-- PIN MODAL -->
+<div class="modal-overlay" id="pinModal">
+  <div class="modal-panel" style="position:relative;">
+    <button class="modal-close" id="pinClose"><i class="fas fa-xmark"></i></button>
+    <div class="modal-handle"></div>
+    <div class="modal-title">Enter your PIN</div>
+    <div class="modal-sub" id="pinSub">Confirm this move with your 4-digit PIN.</div>
+
+    <div class="pin-dots">
+      <div class="pin-dot"></div><div class="pin-dot"></div>
+      <div class="pin-dot"></div><div class="pin-dot"></div>
+    </div>
+
+    <div class="keypad">
+      <button class="keypad-key" data-key="1">1</button>
+      <button class="keypad-key" data-key="2">2</button>
+      <button class="keypad-key" data-key="3">3</button>
+      <button class="keypad-key" data-key="4">4</button>
+      <button class="keypad-key" data-key="5">5</button>
+      <button class="keypad-key" data-key="6">6</button>
+      <button class="keypad-key" data-key="7">7</button>
+      <button class="keypad-key" data-key="8">8</button>
+      <button class="keypad-key" data-key="9">9</button>
+      <button class="keypad-key empty"></button>
+      <button class="keypad-key" data-key="0">0</button>
+      <button class="keypad-key" data-key="del"><i class="fas fa-delete-left"></i></button>
+    </div>
+  </div>
+</div>
+
+<!-- SUCCESS -->
+<div class="success-overlay" id="successOverlay">
+  <svg class="success-check" viewBox="0 0 52 52">
+    <circle cx="26" cy="26" r="24"/>
+    <path d="M14 27 L22 35 L38 19"/>
+  </svg>
+  <div class="success-title">Transfer complete</div>
+  <div class="success-sub" id="successSub">—</div>
+  <div class="success-amount" id="successAmount">—</div>
+  <div class="success-ref" id="successRef">—</div>
+  <div class="success-actions">
+    <a href="dashboard.html" class="btn btn-outline btn-block">Dashboard</a>
+    <a href="move-money.html" class="btn btn-primary btn-block">Move again</a>
+  </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore-compat.js"></script>
+<script src="firebase-config.js"></script>
+<script src="drawer.js"></script>
+
+<script>
+const $ = id => document.getElementById(id);
+
+let currentUid = null, userProfile = null, myAccounts = [];
+let pendingMove = null, enteredPin = '';
+
+auth.onAuthStateChanged(async (user) => {
+  if (!user) { window.location.href = 'login.html'; return; }
+  const snap = await db.collection('swifttrust_users').doc(user.uid).get();
+  if (!snap.exists) { await auth.signOut(); window.location.href = 'login.html'; return; }
+  const d = snap.data();
+  if (d.status !== 'approved') { await auth.signOut(); window.location.href = 'login.html'; return; }
+  currentUid = user.uid;
+  userProfile = d;
+
+  const accSnap = await db.collection('swifttrust_accounts').where('ownerId', '==', user.uid).get();
+  myAccounts = [];
+  accSnap.forEach(doc => myAccounts.push({ id: doc.id, ...doc.data() }));
+
+  if (myAccounts.length < 2) {
+    showErr('You need at least two accounts to move money.');
+    $('submitBtn').disabled = true;
+    return;
+  }
+
+  fillSelects();
+  // Auto-fill from URL query (?from=checking or ?to=savings)
+  const params = new URLSearchParams(location.search);
+  const fromPref = params.get('from');
+  if (fromPref) {
+    const found = myAccounts.find(a => a.type === fromPref);
+    if (found) $('fromAccount').value = found.id;
+  }
+  syncToFrom(); updatePreview();
+});
+
+function fillSelects() {
+  const opts = '<option value="">Select account</option>' +
+    myAccounts.map(a =>
+      `<option value="${a.id}">${a.nickname || a.type} — ••••${String(a.accountNumber).slice(-4)} (${stbMoney(a.balance)})</option>`
+    ).join('');
+  $('fromAccount').innerHTML = opts;
+  $('toAccount').innerHTML = opts;
+}
+
+function syncToFrom() {
+  // Prevent From == To: if they match, pick a different one for To
+  const fromId = $('fromAccount').value;
+  const toId = $('toAccount').value;
+  if (fromId && fromId === toId) {
+    const other = myAccounts.find(a => a.id !== fromId);
+    if (other) $('toAccount').value = other.id;
+  }
+}
+
+$('fromAccount').addEventListener('change', () => { syncToFrom(); updatePreview(); });
+$('toAccount').addEventListener('change', updatePreview);
+$('amount').addEventListener('input', updatePreview);
+
+$('swapBtn').addEventListener('click', () => {
+  const f = $('fromAccount').value;
+  const t = $('toAccount').value;
+  $('fromAccount').value = t;
+  $('toAccount').value = f;
+  updatePreview();
+});
+
+function updatePreview() {
+  const fromId = $('fromAccount').value;
+  const toId = $('toAccount').value;
+  const amt = Number($('amount').value || 0);
+  const from = myAccounts.find(a => a.id === fromId);
+  const to = myAccounts.find(a => a.id === toId);
+
+  if (!from || !to || amt <= 0) { $('preview').style.display = 'none'; return; }
+
+  $('preview').style.display = 'block';
+  $('pvFrom').textContent = from.nickname || from.type;
+  $('pvTo').textContent = to.nickname || to.type;
+  $('pvFromBal').textContent = stbMoney(Number(from.balance || 0) - amt);
+  $('pvToBal').textContent = stbMoney(Number(to.balance || 0) + amt);
+  $('pvAmount').textContent = stbMoney(amt);
+}
+
+function showErr(msg) {
+  const a = $('alert');
+  a.textContent = msg;
+  a.className = 'form-alert show error';
+}
+
+$('moveForm').addEventListener('submit', (e) => {
+  e.preventDefault();
+  $('alert').className = 'form-alert';
+
+  const fromId = $('fromAccount').value;
+  const toId = $('toAccount').value;
+  const amt = Number($('amount').value || 0);
+
+  if (!fromId || !toId) { showErr('Select both accounts.'); return; }
+  if (fromId === toId) { showErr('Choose two different accounts.'); return; }
+  if (amt <= 0) { showErr('Enter an amount greater than zero.'); return; }
+
+  const from = myAccounts.find(a => a.id === fromId);
+  const to = myAccounts.find(a => a.id === toId);
+  if (from.status === 'frozen') { showErr('Source account is frozen.'); return; }
+  if (to.status === 'frozen') { showErr('Destination account is frozen.'); return; }
+  if (Number(from.balance || 0) < amt) { showErr('Insufficient funds in ' + (from.nickname || from.type) + '.'); return; }
+
+  pendingMove = { fromId, toId, from, to, amount: amt };
+
+  enteredPin = ''; updatePinDots();
+  $('pinSub').textContent = `Move ${stbMoney(amt)} from ${from.nickname || from.type} to ${to.nickname || to.type}.`;
+  $('pinModal').classList.add('show');
+  document.body.style.overflow = 'hidden';
+});
+
+$('pinClose').addEventListener('click', () => { $('pinModal').classList.remove('show'); document.body.style.overflow = ''; });
+$('pinModal').addEventListener('click', e => { if (e.target.id === 'pinModal') { $('pinModal').classList.remove('show'); document.body.style.overflow = ''; } });
+
+document.querySelectorAll('.keypad-key[data-key]').forEach(k => {
+  k.addEventListener('click', () => {
+    const key = k.dataset.key;
+    if (key === 'del') enteredPin = enteredPin.slice(0, -1);
+    else if (enteredPin.length < 4) enteredPin += key;
+    updatePinDots();
+    if (enteredPin.length === 4) setTimeout(verifyPin, 220);
+  });
+});
+
+function updatePinDots() {
+  document.querySelectorAll('.pin-dot').forEach((d, i) => d.classList.toggle('filled', i < enteredPin.length));
+}
+
+async function verifyPin() {
+  if (stbHashPin(enteredPin) !== userProfile.pinHash) {
+    enteredPin = ''; updatePinDots();
+    stbToast('Incorrect PIN.', 'error');
+    return;
+  }
+  $('pinModal').classList.remove('show');
+
+  try {
+    const reference = stbGenReference();
+
+    await db.runTransaction(async (tx) => {
+      const fromRef = db.collection('swifttrust_accounts').doc(pendingMove.fromId);
+      const toRef = db.collection('swifttrust_accounts').doc(pendingMove.toId);
+      const fromSnap = await tx.get(fromRef);
+      const toSnap = await tx.get(toRef);
+
+      if (!fromSnap.exists || !toSnap.exists) throw new Error('Account not found.');
+      const fData = fromSnap.data();
+      const tData = toSnap.data();
+      if (Number(fData.balance) < pendingMove.amount) throw new Error('Insufficient funds.');
+
+      tx.update(fromRef, { balance: Number(fData.balance) - pendingMove.amount });
+      tx.update(toRef, { balance: Number(tData.balance) + pendingMove.amount });
+
+      tx.set(db.collection('swifttrust_transactions').doc(), {
+        reference,
+        type: 'internal_move',
+        fromUid: currentUid,
+        fromAccountId: pendingMove.fromId,
+        fromAccountNumber: fData.accountNumber,
+        fromAccountName: fData.ownerName,
+        toUid: currentUid,
+        toAccountId: pendingMove.toId,
+        toAccountNumber: tData.accountNumber,
+        toAccountName: tData.ownerName,
+        amount: pendingMove.amount,
+        fee: 0,
+        total: pendingMove.amount,
+        description: `Moved to ${tData.nickname || tData.type}`,
+        status: 'completed',
+        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+      });
+    });
+
+    $('successSub').textContent = `${pendingMove.from.nickname || pendingMove.from.type} → ${pendingMove.to.nickname || pendingMove.to.type}`;
+    $('successAmount').textContent = stbMoney(pendingMove.amount);
+    $('successRef').textContent = reference;
+    $('successOverlay').classList.add('show');
+    fireConfetti();
+  } catch (err) {
+    console.error(err);
+    stbToast(err.message || 'Move failed.', 'error');
+  }
+}
+
+function fireConfetti() {
+  const colors = ['#2563eb', '#10b981', '#f59e0b', '#8b5cf6'];
+  for (let i = 0; i < 30; i++) {
+    const p = document.createElement('div');
+    p.className = 'confetti-piece';
+    p.style.left = Math.random() * 100 + 'vw';
+    p.style.background = colors[Math.floor(Math.random() * colors.length)];
+    p.style.animationDuration = (1.5 + Math.random() * 1.5) + 's';
+    p.style.animationDelay = (Math.random() * 0.4) + 's';
+    document.body.appendChild(p);
+    setTimeout(() => p.remove(), 3500);
+  }
+}
+</script>
+</body>
+</html>

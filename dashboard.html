@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<title>Dashboard — SwiftTrust Bank</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="mob-shell">
+
+  <header class="mob-header">
+    <div class="mob-header-inner">
+      <div class="mob-header-left">
+        <button class="mob-menu-btn" id="menuBtn"><i class="fas fa-bars"></i></button>
+        <a href="dashboard.html" class="mob-brand">
+          <div class="mob-brand-mark"><i class="fas fa-shield-halved"></i></div>
+          <div>
+            <div>SwiftTrust</div>
+            <div class="mob-brand-sub">Bank</div>
+          </div>
+        </a>
+      </div>
+      <div class="mob-header-right">
+        <button class="mob-icon-btn" title="Security"><i class="fas fa-shield-halved"></i></button>
+        <a href="notifications.html" class="mob-icon-btn" title="Notifications" style="color:var(--ink);">
+          <i class="fas fa-bell"></i>
+          <span class="badge-dot" id="notifDot" style="display:none;">•</span>
+        </a>
+        <a href="profile.html" class="mob-avatar" id="headerAvatar" style="text-decoration:none;">—</a>
+      </div>
+    </div>
+  </header>
+
+  <section class="balance-hero">
+    <div class="bh-greet-row">
+      <div class="bh-greet-left">
+        <div class="bh-avatar" id="heroInitials">—</div>
+        <div>
+          <div class="bh-greet-label" id="greetLabel">Good Morning</div>
+          <div class="bh-greet-name" id="greetName">—</div>
+        </div>
+      </div>
+      <div class="bh-time">
+        <div class="bh-clock" id="liveClock">--:--:--</div>
+        <div class="bh-date" id="liveDate">—</div>
+      </div>
+    </div>
+
+    <div class="bh-label">Available Balance</div>
+    <div class="bh-amount-row">
+      <div class="bh-amount" id="totalBalance">$0.00</div>
+      <button class="bh-eye" id="eyeToggle" title="Hide / show">
+        <i class="fas fa-eye" id="eyeIcon"></i>
+      </button>
+    </div>
+
+    <div class="bh-account-row">
+      <div class="bh-account-left">
+        <div class="bh-account-icon"><i class="fas fa-building-columns"></i></div>
+        <div>
+          <div class="bh-account-label">Your Account Number</div>
+          <div class="bh-account-num" id="primaryAccNum">— — — — —</div>
+          <div class="bh-active-badge"><i class="fas fa-circle"></i> Active</div>
+        </div>
+      </div>
+      <div class="bh-account-actions">
+        <a href="history.html" class="bh-chip"><i class="fas fa-chart-line"></i> Transactions</a>
+        <a href="history.html" class="bh-chip"><i class="fas fa-file-lines"></i> Statement</a>
+      </div>
+    </div>
+  </section>
+
+  <section class="action-section">
+    <div class="action-title">What would you like to do today?</div>
+    <div class="action-sub">Choose from our popular actions below</div>
+    <div class="action-row">
+      <a href="transfer-internal.html" class="action-tile">
+        <i class="fas fa-building-columns"></i><span>To SwiftTrust</span>
+      </a>
+      <a href="transfer-external.html" class="action-tile">
+        <i class="fas fa-paper-plane"></i><span>To Bank</span>
+      </a>
+      <a href="save.html" class="action-tile">
+        <i class="fas fa-lock"></i><span>Save</span>
+      </a>
+    </div>
+  </section>
+
+  <div class="section-head-row">
+    <h3>My Balances</h3>
+    <a href="move-money.html">Move money</a>
+  </div>
+  <div class="balances-scroll" id="balancesScroll">
+    <div class="balance-tile" style="opacity:.5;">
+      <div class="balance-tile-icon usd"><i class="fas fa-circle-notch fa-spin"></i></div>
+      <div class="balance-tile-label">Loading…</div>
+      <div class="balance-tile-amount">$0.00</div>
+      <div class="balance-tile-sub">Please wait</div>
+    </div>
+  </div>
+
+  <div class="section-head-row" style="margin-top:22px;">
+    <h3>Recent Activity</h3>
+    <a href="history.html">View all</a>
+  </div>
+  <div class="mob-pad" style="margin-bottom:24px;">
+    <div class="card" style="padding:0;overflow:hidden;">
+      <div id="recentList">
+        <div class="empty-state"><i class="fas fa-circle-notch fa-spin"></i><p>Loading activity…</p></div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<nav class="bottom-nav">
+  <a href="dashboard.html" class="bottom-nav-item active">
+    <i class="fas fa-house"></i><span>Home</span>
+  </a>
+  <a href="history.html" class="bottom-nav-item">
+    <i class="fas fa-clock-rotate-left"></i><span>History</span>
+  </a>
+  <a href="#" id="bottomNavMenu" class="bottom-nav-item">
+    <i class="fas fa-bars"></i><span>Menu</span>
+  </a>
+  <a href="stocks.html" class="bottom-nav-item">
+    <i class="fas fa-chart-line"></i><span>Stocks</span>
+  </a>
+  <a href="profile.html" class="bottom-nav-item">
+    <i class="fas fa-user"></i><span>Profile</span>
+  </a>
+</nav>
+
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore-compat.js"></script>
+<script src="firebase-config.js"></script>
+<script src="drawer.js"></script>
+
+<script>
+let currentUid = null, userProfile = null;
+let accountsCache = [], savesCache = [], txOut = [], txIn = [];
+let unsubAccounts, unsubSaves, unsubTxOut, unsubTxIn;
+let balanceHidden = false;
+
+const NY_TZ = 'America/New_York';
+
+// ===== Live clock — New York time =====
+function updateClock() {
+  const now = new Date();
+  document.getElementById('liveClock').textContent = new Intl.DateTimeFormat('en-US', {
+    timeZone: NY_TZ, hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false
+  }).format(now);
+
+  document.getElementById('liveDate').textContent = new Intl.DateTimeFormat('en-US', {
+    timeZone: NY_TZ, weekday: 'long', month: 'long', day: 'numeric', year: 'numeric'
+  }).format(now);
+
+  const hourNY = Number(new Intl.DateTimeFormat('en-US', {
+    timeZone: NY_TZ, hour: 'numeric', hour12: false
+  }).format(now));
+
+  document.getElementById('greetLabel').textContent =
+    hourNY < 12 ? 'Good Morning' : hourNY < 17 ? 'Good Afternoon' : 'Good Evening';
+}
+setInterval(updateClock, 1000);
+updateClock();
+
+// ===== Eye toggle =====
+document.getElementById('eyeToggle').addEventListener('click', () => {
+  balanceHidden = !balanceHidden;
+  document.getElementById('eyeIcon').className = balanceHidden ? 'fas fa-eye-slash' : 'fas fa-eye';
+  updateTotalBalance();
+  renderBalances();
+});
+
+// ===== Auth =====
+auth.onAuthStateChanged(async (user) => {
+  if (!user) { window.location.href = 'login.html'; return; }
+  const snap = await db.collection('swifttrust_users').doc(user.uid).get();
+  if (!snap.exists) { await auth.signOut(); window.location.href = 'login.html'; return; }
+  const data = snap.data();
+  if (data.status !== 'approved') { await auth.signOut(); window.location.href = 'login.html'; return; }
+
+  currentUid = user.uid;
+  userProfile = data;
+
+  const firstName = (data.fullName || '').split(' ')[0] || 'there';
+  document.getElementById('greetName').textContent = firstName;
+  const initials = (data.fullName || '?').split(' ').map(s => s[0]).slice(0, 2).join('').toUpperCase();
+  document.getElementById('heroInitials').textContent = initials;
+  document.getElementById('headerAvatar').textContent = initials;
+
+  startListeners();
+});
+
+function startListeners() {
+  if (unsubAccounts) return;
+
+  // Accounts
+  unsubAccounts = db.collection('swifttrust_accounts')
+    .where('ownerId', '==', currentUid)
+    .onSnapshot(snap => {
+      accountsCache = [];
+      snap.forEach(d => accountsCache.push({ id: d.id, ...d.data() }));
+      accountsCache.sort((a, b) => {
+        const order = { checking: 0, savings: 1 };
+        return (order[a.type] ?? 99) - (order[b.type] ?? 99);
+      });
+      updateTotalBalance();
+      renderBalances();
+      renderPrimaryAccount();
+    }, err => console.error('accounts', err));
+
+  // Saves
+  unsubSaves = db.collection('swifttrust_saves')
+    .where('ownerId', '==', currentUid)
+    .onSnapshot(snap => {
+      savesCache = [];
+      snap.forEach(d => savesCache.push({ id: d.id, ...d.data() }));
+      renderBalances();
+    }, err => console.error('saves', err));
+
+  // Outgoing transactions — NO orderBy (avoids composite index)
+  unsubTxOut = db.collection('swifttrust_transactions')
+    .where('fromUid', '==', currentUid)
+    .onSnapshot(snap => {
+      txOut = [];
+      snap.forEach(d => txOut.push({ id: d.id, ...d.data() }));
+      renderRecent();
+      updateNotifDot();
+    }, err => console.error('txOut', err));
+
+  // Incoming transactions — NO orderBy
+  unsubTxIn = db.collection('swifttrust_transactions')
+    .where('toUid', '==', currentUid)
+    .onSnapshot(snap => {
+      txIn = [];
+      snap.forEach(d => txIn.push({ id: d.id, ...d.data() }));
+      renderRecent();
+      updateNotifDot();
+    }, err => console.error('txIn', err));
+}
+
+function updateNotifDot() {
+  const all = [...txOut, ...txIn];
+  const lastRead = userProfile && userProfile.lastReadNotifAt && userProfile.lastReadNotifAt.toDate
+    ? userProfile.lastReadNotifAt.toDate().getTime() : 0;
+  const hasNew = all.some(t => t.createdAt && t.createdAt.toDate && t.createdAt.toDate().getTime() > lastRead);
+  document.getElementById('notifDot').style.display = hasNew ? 'grid' : 'none';
+}
+
+function updateTotalBalance() {
+  const total = accountsCache.reduce((s, a) => s + Number(a.balance || 0), 0);
+  document.getElementById('totalBalance').textContent = balanceHidden ? '••••••' : stbMoney(total);
+}
+
+function renderPrimaryAccount() {
+  const primary = accountsCache.find(a => a.type === 'checking') || accountsCache[0];
+  if (!primary) return;
+  const num = String(primary.accountNumber || '');
+  const formatted = num.replace(/(\d{4})(\d{3})(\d{3})/, '$1 $2 $3') || num;
+  document.getElementById('primaryAccNum').textContent = formatted || '— — — — —';
+}
+
+function renderBalances() {
+  const el = document.getElementById('balancesScroll');
+  let html = '';
+
+  if (accountsCache.length > 0) {
+    html += accountsCache.map(a => {
+      const isChecking = a.type === 'checking';
+      const iconCls = isChecking ? 'usd' : a.type === 'savings' ? 'savings' : 'locked';
+      const icon = isChecking ? 'fa-wallet' : a.type === 'savings' ? 'fa-piggy-bank' : 'fa-lock';
+      const label = a.nickname || (isChecking ? 'Checking' : a.type === 'savings' ? 'Savings' : a.type);
+      const sub = isChecking ? 'Everyday spending' : a.type === 'savings' ? 'High-yield savings' : 'Account';
+      return `
+        <div class="balance-tile" style="cursor:pointer;" onclick="location.href='move-money.html?from=${a.type}'">
+          <div class="balance-tile-icon ${iconCls}"><i class="fas ${icon}"></i></div>
+          <div class="balance-tile-label">${label}</div>
+          <div class="balance-tile-amount">${balanceHidden ? '••••••' : stbMoney(a.balance)}</div>
+          <div class="balance-tile-sub">•••• ${String(a.accountNumber || '').slice(-4)} · ${sub}</div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  const lockedSaves = savesCache.filter(s => s.status === 'locked');
+  const totalLocked = lockedSaves.reduce((sum, s) => sum + Number(s.amount || 0), 0);
+
+  if (lockedSaves.length > 0) {
+    const nearest = lockedSaves
+      .map(s => s.maturesAt?.toDate ? s.maturesAt.toDate() : new Date(s.maturesAt))
+      .sort((a, b) => a - b)[0];
+    const days = Math.max(0, Math.ceil((nearest - Date.now()) / 86400000));
+    html += `
+      <div class="balance-tile" style="cursor:pointer;" onclick="location.href='save.html'">
+        <div class="balance-tile-icon locked"><i class="fas fa-lock"></i></div>
+        <div class="balance-tile-label">Locked Save</div>
+        <div class="balance-tile-amount">${balanceHidden ? '••••••' : stbMoney(totalLocked)}</div>
+        <div class="balance-tile-sub">${lockedSaves.length} lock${lockedSaves.length === 1 ? '' : 's'} · next matures in ${days}d</div>
+      </div>
+    `;
+  }
+
+  if (!html) {
+    el.innerHTML = '<div class="empty-state"><i class="fas fa-wallet"></i><p>No accounts yet.</p></div>';
+    return;
+  }
+
+  el.innerHTML = html;
+}
+
+function renderRecent() {
+  const all = [...txOut, ...txIn].sort((a, b) => {
+    const ta = a.createdAt && a.createdAt.toDate ? a.createdAt.toDate().getTime() : 0;
+    const tb = b.createdAt && b.createdAt.toDate ? b.createdAt.toDate().getTime() : 0;
+    return tb - ta;
+  }).slice(0, 4);
+
+  const el = document.getElementById('recentList');
+  if (all.length === 0) {
+    el.innerHTML = `<div class="empty-state"><i class="fas fa-receipt"></i><p>No transactions yet.</p></div>`;
+    return;
+  }
+
+  el.innerHTML = all.map(t => {
+    const isOut = t.fromUid === currentUid;
+    const isFee = t.type === 'fee';
+    const isStock = t.type === 'stock_buy' || t.type === 'stock_sell';
+    const isSaveLock = t.type === 'save_lock';
+    const isSaveRelease = t.type === 'save_release';
+    const isMove = t.type === 'internal_move';
+
+    let sign = isOut ? '-' : '+';
+    let icon = 'fa-arrow-up';
+    let iconBg = '#fee2e2';
+    let iconColor = '#b91c1c';
+    let desc = t.description || '';
+
+    if (isFee) {
+      sign = '-'; icon = 'fa-percent'; iconBg = '#fef3c7'; iconColor = '#b45309';
+      desc = 'Transfer fee';
+    } else if (isStock) {
+      sign = t.type === 'stock_buy' ? '-' : '+';
+      icon = 'fa-chart-line'; iconBg = '#ede9fe'; iconColor = '#6d28d9';
+      desc = t.description || (t.type === 'stock_buy' ? 'Stock purchase' : 'Stock sale');
+    } else if (isSaveLock) {
+      sign = '-'; icon = 'fa-lock'; iconBg = '#e8f0fb'; iconColor = '#2563eb';
+      desc = 'Funds locked';
+    } else if (isSaveRelease) {
+      sign = '+'; icon = 'fa-unlock'; iconBg = '#dcfce7'; iconColor = '#15803d';
+      desc = 'Save released';
+    } else if (isMove) {
+      sign = '↔'; icon = 'fa-right-left'; iconBg = '#e8f0fb'; iconColor = '#2563eb';
+      desc = t.description || 'Account transfer';
+    } else if (t.type === 'admin_credit') {
+      sign = '+'; icon = 'fa-circle-plus'; iconBg = '#dcfce7'; iconColor = '#15803d';
+      desc = t.description || 'Deposit';
+    } else if (t.type === 'admin_debit') {
+      sign = '-'; icon = 'fa-circle-minus'; iconBg = '#fee2e2'; iconColor = '#b91c1c';
+      desc = t.description || 'Adjustment';
+    } else if (isOut) {
+      desc = t.toBank ? `To ${t.toAccountName} · ${t.toBank}` : `To ${t.toAccountName || t.toAccountNumber}`;
+    } else {
+      sign = '+'; icon = 'fa-arrow-down'; iconBg = '#dcfce7'; iconColor = '#15803d';
+      desc = `From ${t.fromAccountName || t.fromAccountNumber}`;
+    }
+
+    const color = (sign === '+' || sign === '↔') ? 'var(--green)' : 'var(--ink)';
+    const amtDisplay = isMove ? stbMoney(t.amount) : (sign + stbMoney(t.amount));
+
+    return `
+      <div style="display:flex;align-items:center;gap:12px;padding:14px 16px;border-bottom:1px solid var(--line);">
+        <div style="width:38px;height:38px;border-radius:12px;background:${iconBg};color:${iconColor};display:grid;place-items:center;flex-shrink:0;">
+          <i class="fas ${icon}"></i>
+        </div>
+        <div style="flex:1;min-width:0;">
+          <div style="font-size:.88rem;font-weight:600;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${desc}</div>
+          <div style="font-size:.72rem;color:var(--text-faint);">${stbDate(t.createdAt)}</div>
+        </div>
+        <div style="font-size:.9rem;font-weight:700;color:${color};white-space:nowrap;">${amtDisplay}</div>
+      </div>`;
+  }).join('') + `<a href="history.html" style="display:block;text-align:center;padding:14px;font-size:.82rem;font-weight:600;">View all transactions <i class="fas fa-arrow-right"></i></a>`;
+}
+</script>
+</body>
+</html>

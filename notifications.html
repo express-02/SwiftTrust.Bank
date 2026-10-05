@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<title>Notifications — SwiftTrust Bank</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="mob-shell">
+
+  <header class="mob-header">
+    <div class="mob-header-inner">
+      <div class="mob-header-left">
+        <button class="mob-menu-btn" id="menuBtn"><i class="fas fa-bars"></i></button>
+        <h1 style="font-size:1.05rem;">Notifications</h1>
+      </div>
+      <div class="mob-header-right">
+        <button class="btn btn-ghost" id="markAllBtn" style="font-size:.78rem;padding:6px 10px;">
+          <i class="fas fa-check-double"></i> Mark all read
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <div class="mob-pad" style="padding-top:18px;">
+    <div class="card" style="padding:0;overflow:hidden;">
+      <div id="notifList">
+        <div class="empty-state"><i class="fas fa-circle-notch fa-spin"></i><p>Loading…</p></div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<nav class="bottom-nav">
+  <a href="dashboard.html" class="bottom-nav-item"><i class="fas fa-house"></i><span>Home</span></a>
+  <a href="history.html" class="bottom-nav-item"><i class="fas fa-clock-rotate-left"></i><span>History</span></a>
+  <a href="#" id="bottomNavMenu" class="bottom-nav-item"><i class="fas fa-bars"></i><span>Menu</span></a>
+  <a href="stocks.html" class="bottom-nav-item"><i class="fas fa-chart-line"></i><span>Stocks</span></a>
+  <a href="profile.html" class="bottom-nav-item"><i class="fas fa-user"></i><span>Profile</span></a>
+</nav>
+
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore-compat.js"></script>
+<script src="firebase-config.js"></script>
+<script src="drawer.js"></script>
+
+<script>
+let currentUid = null;
+let userProfile = null;
+let senderTx = [];
+let receiverTx = [];
+let senderLoaded = false;
+let receiverLoaded = false;
+
+auth.onAuthStateChanged(async (user) => {
+  if (!user) { window.location.href = 'login.html'; return; }
+  const snap = await db.collection('swifttrust_users').doc(user.uid).get();
+  if (!snap.exists) { await auth.signOut(); window.location.href = 'login.html'; return; }
+  const data = snap.data();
+  if (data.status !== 'approved') { await auth.signOut(); window.location.href = 'login.html'; return; }
+  currentUid = user.uid;
+  userProfile = data;
+  startListeners();
+});
+
+function startListeners() {
+  // No orderBy — sort in JS (avoids Firestore composite index requirement)
+  db.collection('swifttrust_transactions')
+    .where('fromUid', '==', currentUid)
+    .onSnapshot(snap => {
+      senderLoaded = true;
+      senderTx = [];
+      snap.forEach(d => senderTx.push({ id: d.id, ...d.data() }));
+      render();
+    }, err => {
+      console.error('sent query', err);
+      senderLoaded = true;
+      render();
+    });
+
+  db.collection('swifttrust_transactions')
+    .where('toUid', '==', currentUid)
+    .onSnapshot(snap => {
+      receiverLoaded = true;
+      receiverTx = [];
+      snap.forEach(d => receiverTx.push({ id: d.id, ...d.data() }));
+      render();
+    }, err => {
+      console.error('received query', err);
+      receiverLoaded = true;
+      render();
+    });
+}
+
+function render() {
+  const el = document.getElementById('notifList');
+
+  if (!senderLoaded || !receiverLoaded) return;
+
+  // Merge + dedupe
+  const map = new Map();
+  senderTx.forEach(t => map.set(t.id, { ...t, _dir: 'out' }));
+  receiverTx.forEach(t => {
+    if (map.has(t.id)) map.get(t.id)._dir = 'both';
+    else map.set(t.id, { ...t, _dir: 'in' });
+  });
+
+  const allEvents = Array.from(map.values()).sort((a, b) => {
+    const ta = a.createdAt?.toDate?.()?.getTime?.() || 0;
+    const tb = b.createdAt?.toDate?.()?.getTime?.() || 0;
+    return tb - ta;
+  });
+
+  if (allEvents.length === 0) {
+    el.innerHTML = `<div class="empty-state"><i class="fas fa-bell-slash"></i><p>No notifications yet.</p></div>`;
+    return;
+  }
+
+  const lastRead = userProfile?.lastReadNotifAt?.toDate?.()?.getTime?.() || 0;
+
+  el.innerHTML = allEvents.slice(0, 40).map(t => {
+    const isUnread = (t.createdAt?.toDate?.()?.getTime?.() || 0) > lastRead;
+    let icon = 'fa-bell', bg = 'var(--blue-soft)', color = 'var(--blue)', title = '', body = '';
+    const when = stbDate(t.createdAt);
+
+    if (t.type === 'admin_credit') {
+      icon = 'fa-circle-plus'; bg = 'var(--green-soft)'; color = 'var(--green)';
+      title = 'Funds added';
+      body = `${stbMoney(t.amount)} was added to your account.`;
+    } else if (t.type === 'admin_debit') {
+      icon = 'fa-circle-minus'; bg = 'var(--red-soft)'; color = 'var(--red)';
+      title = 'Funds removed';
+      body = `${stbMoney(t.amount)} was removed from your account.`;
+    } else if (t.type === 'stock_buy') {
+      icon = 'fa-chart-line'; bg = '#ede9fe'; color = '#6d28d9';
+      title = 'Stock purchased';
+      body = t.description || `Stock purchase of ${stbMoney(t.amount)}`;
+    } else if (t.type === 'stock_sell') {
+      icon = 'fa-chart-line'; bg = 'var(--green-soft)'; color = 'var(--green)';
+      title = 'Stock sold';
+      body = t.description || `Stock sale of ${stbMoney(t.amount)}`;
+    } else if (t.type === 'save_lock') {
+      icon = 'fa-lock'; bg = 'var(--blue-soft)'; color = 'var(--blue)';
+      title = 'Funds locked';
+      body = `${stbMoney(t.amount)} locked in a save.`;
+    } else if (t.type === 'save_release') {
+      icon = 'fa-unlock'; bg = 'var(--green-soft)'; color = 'var(--green)';
+      title = 'Save released';
+      body = `${stbMoney(t.amount)} returned to your account.`;
+    } else if (t.type === 'fee') {
+      icon = 'fa-percent'; bg = 'var(--amber-soft)'; color = 'var(--amber)';
+      title = 'Transfer fee';
+      body = `${stbMoney(t.amount)} fee charged.`;
+    } else if (t.type === 'internal_move') {
+      icon = 'fa-right-left'; bg = 'var(--blue-soft)'; color = 'var(--blue)';
+      title = 'Account transfer';
+      body = t.description || `${stbMoney(t.amount)} moved between your accounts.`;
+    } else if (t._dir === 'out' || t.type === 'external') {
+      icon = 'fa-arrow-up'; bg = 'var(--red-soft)'; color = 'var(--red)';
+      title = 'Transfer sent';
+      body = `You sent ${stbMoney(t.amount)} to ${t.toAccountName || t.toAccountNumber}.`;
+    } else {
+      icon = 'fa-arrow-down'; bg = 'var(--green-soft)'; color = 'var(--green)';
+      title = 'Transfer received';
+      body = `You received ${stbMoney(t.amount)} from ${t.fromAccountName || t.fromAccountNumber}.`;
+    }
+
+    return `
+      <div style="display:flex;gap:14px;padding:16px;border-bottom:1px solid var(--line);${isUnread ? 'background:#f0f7ff;' : ''}">
+        <div style="width:42px;height:42px;border-radius:12px;background:${bg};color:${color};display:grid;place-items:center;flex-shrink:0;">
+          <i class="fas ${icon}"></i>
+        </div>
+        <div style="flex:1;min-width:0;">
+          <div style="display:flex;justify-content:space-between;gap:8px;align-items:baseline;">
+            <strong style="font-size:.9rem;color:var(--ink);">${title}</strong>
+            <span style="font-size:.7rem;color:var(--text-faint);white-space:nowrap;">${when}</span>
+          </div>
+          <p style="font-size:.82rem;color:var(--text-dim);margin-top:2px;">${body}</p>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+document.getElementById('markAllBtn').addEventListener('click', async () => {
+  if (!currentUid) return;
+  try {
+    await db.collection('swifttrust_users').doc(currentUid).update({
+      lastReadNotifAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    stbToast('All notifications marked as read.', 'success');
+  } catch (e) {
+    console.error(e);
+    stbToast('Failed: ' + e.message, 'error');
+  }
+});
+</script>
+</body>
+</html>

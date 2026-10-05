@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<title>Profile — SwiftTrust Bank</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<link rel="stylesheet" href="style.css">
+<style>
+  .profile-hero {
+    margin: 18px;
+    border-radius: var(--radius-xl);
+    background: linear-gradient(150deg, #0a2d5e, #1e4d8f);
+    color: #fff; padding: 26px;
+    position: relative; overflow: hidden;
+    text-align: center;
+  }
+  .profile-hero::after {
+    content: ''; position: absolute;
+    width: 260px; height: 260px; border-radius: 50%;
+    background: radial-gradient(circle, rgba(77,142,232,.4), transparent 70%);
+    top: -100px; right: -80px;
+  }
+  .profile-hero-inner { position: relative; z-index: 1; }
+  .profile-avatar {
+    width: 78px; height: 78px; border-radius: 50%;
+    background: rgba(255,255,255,.15);
+    border: 2px solid rgba(255,255,255,.25);
+    color: #fff;
+    display: grid; place-items: center;
+    font-weight: 800; font-size: 1.6rem;
+    margin: 0 auto 14px;
+    letter-spacing: .02em;
+  }
+  .profile-name { font-size: 1.3rem; font-weight: 700; }
+  .profile-email { font-size: .85rem; color: #b8c9e6; margin-top: 4px; }
+  .profile-badge {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: rgba(74, 222, 128, .18);
+    border: 1px solid rgba(74, 222, 128, .35);
+    color: #86efac;
+    padding: 4px 12px; border-radius: 999px;
+    font-size: .7rem; font-weight: 700; letter-spacing: .05em;
+    margin-top: 12px;
+  }
+  .profile-badge i { font-size: .5rem; }
+
+  .info-section {
+    margin: 0 18px 16px;
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+  }
+  .info-section-title {
+    padding: 14px 18px 8px;
+    font-size: .7rem; font-weight: 700; letter-spacing: .1em;
+    color: var(--text-faint); text-transform: uppercase;
+    background: var(--bg);
+    border-bottom: 1px solid var(--line);
+  }
+  .info-row {
+    display: flex; justify-content: space-between; align-items: flex-start;
+    padding: 14px 18px;
+    border-bottom: 1px solid var(--line);
+    gap: 16px;
+  }
+  .info-row:last-child { border-bottom: none; }
+  .info-label {
+    font-size: .8rem; color: var(--text-faint); flex-shrink: 0;
+  }
+  .info-value {
+    font-size: .88rem; color: var(--ink); font-weight: 600;
+    text-align: right; word-break: break-word;
+  }
+  .info-value.mono {
+    font-family: ui-monospace, 'SF Mono', monospace;
+    letter-spacing: .04em;
+  }
+  .masked { letter-spacing: .15em; }
+
+  .acct-row {
+    display: flex; align-items: center; gap: 14px;
+    padding: 14px 18px;
+    border-bottom: 1px solid var(--line);
+  }
+  .acct-row:last-child { border-bottom: none; }
+  .acct-icon {
+    width: 42px; height: 42px; border-radius: 12px;
+    background: var(--blue-soft); color: var(--blue);
+    display: grid; place-items: center; font-size: .95rem;
+    flex-shrink: 0;
+  }
+  .acct-main { flex: 1; min-width: 0; }
+  .acct-name { font-size: .9rem; font-weight: 700; color: var(--ink); }
+  .acct-num {
+    font-size: .72rem; color: var(--text-faint);
+    font-family: ui-monospace, monospace;
+    margin-top: 2px;
+  }
+  .acct-bal { font-weight: 700; font-size: .95rem; color: var(--ink); }
+
+  .link-row {
+    display: flex; align-items: center; gap: 14px;
+    padding: 16px 18px;
+    border-bottom: 1px solid var(--line);
+    text-decoration: none; color: inherit;
+    transition: background .12s;
+    cursor: pointer;
+    background: none; border-left: none; border-right: none; border-top: none;
+    width: 100%; font-family: inherit; text-align: left;
+  }
+  .link-row:last-child { border-bottom: none; }
+  .link-row:hover { background: #fafcfe; text-decoration: none; }
+  .link-row i.lr-icon {
+    width: 36px; height: 36px; border-radius: 10px;
+    background: var(--blue-soft); color: var(--blue);
+    display: grid; place-items: center; font-size: .9rem;
+    flex-shrink: 0;
+  }
+  .link-row.danger i.lr-icon { background: var(--red-soft); color: var(--red); }
+  .link-row .lr-label { flex: 1; font-size: .9rem; font-weight: 600; color: var(--ink); }
+  .link-row.danger .lr-label { color: var(--red); }
+  .link-row .lr-arrow { color: var(--text-faint); font-size: .85rem; }
+
+  .signout-btn {
+    margin: 8px 18px 40px;
+    display: flex; align-items: center; justify-content: center; gap: 10px;
+    padding: 14px;
+    background: var(--red-soft); color: var(--red);
+    border: 1px solid #fecaca; border-radius: 14px;
+    font-family: inherit; font-weight: 700; font-size: .92rem;
+    width: calc(100% - 36px);
+    transition: background .15s, transform .12s;
+  }
+  .signout-btn:hover { background: #fecaca; }
+  .signout-btn:active { transform: scale(.98); }
+</style>
+</head>
+<body>
+
+<div class="mob-shell">
+
+  <header class="mob-header">
+    <div class="mob-header-inner">
+      <div class="mob-header-left">
+        <button class="mob-menu-btn" id="menuBtn"><i class="fas fa-bars"></i></button>
+        <h1 style="font-size:1.05rem;">Profile</h1>
+      </div>
+      <div class="mob-header-right">
+        <a href="settings.html" class="mob-icon-btn" title="Settings"><i class="fas fa-gear"></i></a>
+      </div>
+    </div>
+  </header>
+
+  <section class="profile-hero">
+    <div class="profile-hero-inner">
+      <div class="profile-avatar" id="avatar">—</div>
+      <div class="profile-name" id="profileName">Loading…</div>
+      <div class="profile-email" id="profileEmail">—</div>
+      <div class="profile-badge"><i class="fas fa-circle"></i> Active Account</div>
+    </div>
+  </section>
+
+  <!-- Personal Information -->
+  <div class="info-section">
+    <div class="info-section-title">Personal Information</div>
+    <div class="info-row"><span class="info-label">Full name</span><span class="info-value" id="pFullName">—</span></div>
+    <div class="info-row"><span class="info-label">Email</span><span class="info-value" id="pEmail">—</span></div>
+    <div class="info-row"><span class="info-label">Phone</span><span class="info-value" id="pPhone">—</span></div>
+    <div class="info-row"><span class="info-label">Date of birth</span><span class="info-value" id="pDob">—</span></div>
+    <div class="info-row"><span class="info-label">SSN</span><span class="info-value mono masked" id="pSsn">•••-••-••••</span></div>
+    <div class="info-row"><span class="info-label">Customer ID</span><span class="info-value mono" id="pCid">—</span></div>
+    <div class="info-row"><span class="info-label">Member since</span><span class="info-value" id="pMember">—</span></div>
+  </div>
+
+  <!-- Address -->
+  <div class="info-section">
+    <div class="info-section-title">Home Address</div>
+    <div class="info-row"><span class="info-label">Street</span><span class="info-value" id="pStreet">—</span></div>
+    <div class="info-row"><span class="info-label">City</span><span class="info-value" id="pCity">—</span></div>
+    <div class="info-row"><span class="info-label">State</span><span class="info-value" id="pState">—</span></div>
+    <div class="info-row"><span class="info-label">ZIP code</span><span class="info-value" id="pZip">—</span></div>
+  </div>
+
+  <!-- Accounts -->
+  <div class="info-section">
+    <div class="info-section-title">Your Accounts</div>
+    <div id="accountsBox">
+      <div class="empty-state" style="padding:24px;"><i class="fas fa-circle-notch fa-spin"></i><p>Loading…</p></div>
+    </div>
+  </div>
+
+  <!-- Security -->
+  <div class="info-section">
+    <div class="info-section-title">Security</div>
+    <a class="link-row" href="settings.html">
+      <i class="fas fa-key lr-icon"></i>
+      <span class="lr-label">Change transaction PIN</span>
+      <i class="fas fa-chevron-right lr-arrow"></i>
+    </a>
+    <a class="link-row" href="settings.html">
+      <i class="fas fa-lock lr-icon"></i>
+      <span class="lr-label">Change password</span>
+      <i class="fas fa-chevron-right lr-arrow"></i>
+    </a>
+    <a class="link-row" href="notifications.html">
+      <i class="fas fa-bell lr-icon"></i>
+      <span class="lr-label">Notifications</span>
+      <i class="fas fa-chevron-right lr-arrow"></i>
+    </a>
+  </div>
+
+  <!-- Sign out -->
+  <button class="signout-btn" id="signOutBtn">
+    <i class="fas fa-arrow-right-from-bracket"></i> Sign out
+  </button>
+
+</div>
+
+<nav class="bottom-nav">
+  <a href="dashboard.html" class="bottom-nav-item"><i class="fas fa-house"></i><span>Home</span></a>
+  <a href="history.html" class="bottom-nav-item"><i class="fas fa-clock-rotate-left"></i><span>History</span></a>
+  <a href="#" id="bottomNavMenu" class="bottom-nav-item"><i class="fas fa-bars"></i><span>Menu</span></a>
+  <a href="stocks.html" class="bottom-nav-item"><i class="fas fa-chart-line"></i><span>Stocks</span></a>
+  <a href="profile.html" class="bottom-nav-item active"><i class="fas fa-user"></i><span>Profile</span></a>
+</nav>
+
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore-compat.js"></script>
+<script src="firebase-config.js"></script>
+<script src="drawer.js"></script>
+
+<script>
+document.getElementById('signOutBtn').addEventListener('click', async () => {
+  if (!confirm('Sign out of SwiftTrust?')) return;
+  await auth.signOut();
+  window.location.href = 'login.html';
+});
+
+auth.onAuthStateChanged(async (user) => {
+  if (!user) { window.location.href = 'login.html'; return; }
+  const snap = await db.collection('swifttrust_users').doc(user.uid).get();
+  if (!snap.exists) { await auth.signOut(); window.location.href = 'login.html'; return; }
+  const d = snap.data();
+  if (d.status !== 'approved') { await auth.signOut(); window.location.href = 'login.html'; return; }
+
+  const initials = (d.fullName || '?').split(' ').map(s => s[0]).slice(0, 2).join('').toUpperCase();
+  document.getElementById('avatar').textContent = initials;
+  document.getElementById('profileName').textContent = d.fullName || 'Customer';
+  document.getElementById('profileEmail').textContent = d.email || '';
+
+  document.getElementById('pFullName').textContent = d.fullName || '—';
+  document.getElementById('pEmail').textContent = d.email || '—';
+  document.getElementById('pPhone').textContent = d.phone || '—';
+
+  if (d.dob) {
+    const dobDate = new Date(d.dob);
+    document.getElementById('pDob').textContent = dobDate.toLocaleDateString('en-US', {
+      month: 'long', day: 'numeric', year: 'numeric'
+    });
+  }
+
+  // Mask SSN
+  const ssn4 = d.ssnLast4 || '';
+  document.getElementById('pSsn').textContent = ssn4 ? `•••-••-${ssn4}` : '—';
+
+  document.getElementById('pCid').textContent = 'STB-' + user.uid.slice(0, 8).toUpperCase();
+
+  if (d.createdAt?.toDate) {
+    document.getElementById('pMember').textContent = d.createdAt.toDate().toLocaleDateString('en-US', {
+      month: 'long', year: 'numeric'
+    });
+  }
+
+  if (d.address) {
+    document.getElementById('pStreet').textContent = d.address.street || '—';
+    document.getElementById('pCity').textContent = d.address.city || '—';
+    document.getElementById('pState').textContent = d.address.state || '—';
+    document.getElementById('pZip').textContent = d.address.zip || '—';
+  }
+
+  // Accounts
+  const accSnap = await db.collection('swifttrust_accounts').where('ownerId', '==', user.uid).get();
+  const accounts = [];
+  accSnap.forEach(doc => accounts.push({ id: doc.id, ...doc.data() }));
+
+  const box = document.getElementById('accountsBox');
+  if (accounts.length === 0) {
+    box.innerHTML = `<div class="empty-state" style="padding:24px;"><p>No accounts yet.</p></div>`;
+  } else {
+    box.innerHTML = accounts.map(a => {
+      const isChecking = a.type === 'checking';
+      const icon = isChecking ? 'fa-wallet' : a.type === 'savings' ? 'fa-piggy-bank' : 'fa-lock';
+      return `
+        <div class="acct-row">
+          <div class="acct-icon"><i class="fas ${icon}"></i></div>
+          <div class="acct-main">
+            <div class="acct-name">${a.nickname || a.type}</div>
+            <div class="acct-num">${a.accountNumber} · Routing ${a.routingNumber || '—'}</div>
+          </div>
+          <div class="acct-bal">${stbMoney(a.balance)}</div>
+        </div>
+      `;
+    }).join('');
+  }
+});
+</script>
+</body>
+</html>
